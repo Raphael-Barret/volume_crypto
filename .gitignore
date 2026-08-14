@@ -1,0 +1,20 @@
+# --- LE PLUS IMPORTANT : ne jamais versionner les cles ni les donnees ---
+data/keys/
+*.key
+
+data/to_encrypt/*
+data/encrypted/*
+data/decrypted/*
+!data/**/.gitkeep
+!data/to_encrypt/example_mandible.vtk
+
+*.enc
+*.part
+
+# Python / uv
+__pycache__/
+*.py[cod]
+.pytest_cache/
+venv/
+.venv/
+# NB : uv.lock n'est PAS ignore. Il fige les versions et doit etre versionne.

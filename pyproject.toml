@@ -1,0 +1,23 @@
+[project]
+name = "voltcrypt"
+version = "1.0.0"
+description = "Chiffrement AES-256-GCM de fichiers volumiques (.vtk, .nii, .nrrd, ...)"
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "cryptography>=3.4",
+]
+
+# Dependances utiles seulement pour developper / tester.
+# uv les installe automatiquement ; elles ne sont pas necessaires a l'usage.
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+]
+
+# package = false : voltcrypt s'utilise depuis ce dossier (uv run main.py ...),
+# uv n'a donc pas a le construire ni a l'installer comme une bibliotheque.
+# Passe a true si un jour tu veux `uv pip install .` dans un autre projet.
+[tool.uv]
+package = false
