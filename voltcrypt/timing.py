@@ -43,8 +43,12 @@ def human_size(n: float) -> str:
 
 
 def human_speed(size: int, seconds: float) -> str:
-    """Debit lisible. Retourne '-' si la duree est trop courte pour etre fiable."""
-    if seconds <= 0.001 or size <= 0:
+    """Debit lisible, ou '-' quand la mesure n'aurait pas de sens.
+
+    Sur un fichier de quelques centaines d'octets, le temps est domine par les
+    appels systeme : afficher un debit induirait en erreur.
+    """
+    if seconds <= 0.001 or size < 1024 * 1024:
         return "-"
     return f"{size / seconds / (1024 * 1024):.0f} Mo/s"
 

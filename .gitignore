@@ -5,6 +5,12 @@ data/keys/
 data/to_encrypt/*
 data/encrypted/*
 data/decrypted/*
+
+# Pipeline : jobs recus par le serveur, et racine de confiance generee au
+# premier demarrage. En production, data/trust/ serait au contraire versionne
+# (c'est la reference que le client doit connaitre a l'avance).
+data/server_storage/*
+data/trust/*
 !data/**/.gitkeep
 !data/to_encrypt/example_mandible.vtk
 

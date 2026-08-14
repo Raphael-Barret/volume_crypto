@@ -26,10 +26,11 @@ class TestFormatting(unittest.TestCase):
     def test_speed(self):
         self.assertEqual(timing.human_speed(100 * 1024 * 1024, 1.0), "100 Mo/s")
 
-    def test_speed_is_dash_when_too_fast_to_measure(self):
-        """Un debit calcule sur 0.1 ms n'a aucun sens : on affiche '-'."""
-        self.assertEqual(timing.human_speed(1000, 0.0001), "-")
-        self.assertEqual(timing.human_speed(0, 1.0), "-")
+    def test_speed_is_dash_when_measurement_is_meaningless(self):
+        """Debit affiche seulement quand il veut dire quelque chose."""
+        self.assertEqual(timing.human_speed(1000, 0.0001), "-")   # trop bref
+        self.assertEqual(timing.human_speed(0, 1.0), "-")         # rien traite
+        self.assertEqual(timing.human_speed(238, 0.0012), "-")    # fichier minuscule
 
 
 class TestChrono(unittest.TestCase):

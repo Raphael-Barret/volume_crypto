@@ -54,7 +54,7 @@ Verifier que tout marche :
 uv run python -m unittest discover -s tests -t .
 ```
 
-Attendu : `Ran 80 tests ... OK`. Si les 80 tests passent, l'installation est
+Attendu : `Ran 108 tests ... OK`. Si les 108 tests passent, l'installation est
 bonne.
 
 ### Les 3 commandes uv a connaitre

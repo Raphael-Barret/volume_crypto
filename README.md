@@ -54,25 +54,44 @@ nom d'origine en clair, l'aller-retour sha256, et — si l'original est encore l
 — qu'aucun fragment de celui-ci ne se retrouve dans le `.enc`. Voir
 [la section dediee du guide](GUIDE_UTILISATION.md#5-verifier-que-le-chiffrement-est-correct).
 
+## Pipeline client / serveur
+
+Une demonstration de bout en bout est fournie : le volume est chiffre sur le
+poste, envoye en HTTP, et **la cle n'est remise au serveur qu'apres qu'il a
+prouve quel code il execute**.
+
+```bash
+uv run server.py                                          # terminal 1
+uv run client.py data/to_encrypt/volume.nii.gz --trust-on-first-use   # terminal 2
+```
+
+Modifiez une seule ligne de `server.py` et le client refuse de livrer la cle.
+Voir [PIPELINE.md](PIPELINE.md) — protocole, garanties et limites.
+
 ## Organisation des dossiers
 
 ```
 volume_crypto/
 ├── pyproject.toml          # dependances (gerees par uv)
 ├── main.py                 # ligne de commande
+├── server.py               # serveur de traitement (pipeline)
+├── client.py               # poste clinique (pipeline)
 ├── voltcrypt/
 │   ├── config.py           # ← chemins, taille de bloc, extensions (a modifier)
 │   ├── keys.py             # generation / stockage des cles
 │   ├── crypto.py           # chiffrement d'UN fichier (le coeur)
 │   ├── batch.py            # chiffrement d'un DOSSIER
 │   ├── audit.py            # controles de verification (commande audit)
-│   └── timing.py           # chronometrage et formatage des durees
+│   ├── timing.py           # chronometrage et formatage des durees
+│   ├── attestation.py      # preuve du code execute (pipeline)
+│   └── keyexchange.py      # remise de cle chiffree (pipeline)
 ├── tests/
 │   ├── test_keys.py
 │   ├── test_crypto.py
 │   ├── test_batch.py
 │   ├── test_audit.py
-│   └── test_timing.py
+│   ├── test_timing.py
+│   └── test_pipeline.py
 └── data/
     ├── to_encrypt/         # ← depose tes volumes ici
     ├── encrypted/          # → fichiers .enc
@@ -131,7 +150,7 @@ crypto.encrypt_file(src, dst, key,
 
 ```bash
 cd volume_crypto
-uv run python -m unittest discover -s tests -t . -v     # 80 tests
+uv run python -m unittest discover -s tests -t . -v     # 108 tests
 # ou
 uv run pytest tests -v                                 # pytest vient du groupe dev
 ```

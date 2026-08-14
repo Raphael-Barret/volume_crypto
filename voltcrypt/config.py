@@ -25,6 +25,24 @@ KEYS_DIR = DATA_DIR / "keys"
 #: Cle utilisee par defaut par le CLI
 DEFAULT_KEY_PATH = KEYS_DIR / "master.key"
 
+# --- Pipeline client/serveur (voir PIPELINE.md) ------------------------------
+
+#: Cote serveur : ou sont stockes les jobs recus (toujours chiffres)
+SERVER_STORAGE_DIR = DATA_DIR / "server_storage"
+
+#: Cote client : ce qu'il doit connaitre a l'avance pour verifier le serveur
+#: (cle publique de la racine de confiance, mesure de code attendue).
+TRUST_DIR = DATA_DIR / "trust"
+
+TRUST_ROOT_PUBLIC_KEY = TRUST_DIR / "attestation_root.pub"
+EXPECTED_MEASUREMENT_FILE = TRUST_DIR / "expected_measurement.txt"
+
+#: Cle privee de signature du serveur — SIMULE une racine materielle.
+ATTESTATION_SIGNING_KEY = KEYS_DIR / "attestation_root.key"
+
+SERVER_HOST = "127.0.0.1"
+SERVER_PORT = 8000
+
 
 # ---------------------------------------------------------------------------
 # Parametres de chiffrement
@@ -51,5 +69,6 @@ VOLUME_EXTENSIONS = (
 
 def ensure_dirs() -> None:
     """Cree l'arborescence data/ si elle n'existe pas encore."""
-    for directory in (PLAIN_DIR, ENCRYPTED_DIR, DECRYPTED_DIR, KEYS_DIR):
+    for directory in (PLAIN_DIR, ENCRYPTED_DIR, DECRYPTED_DIR, KEYS_DIR,
+                      SERVER_STORAGE_DIR, TRUST_DIR):
         directory.mkdir(parents=True, exist_ok=True)
