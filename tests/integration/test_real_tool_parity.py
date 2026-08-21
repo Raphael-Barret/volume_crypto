@@ -65,6 +65,15 @@ _RUN_DEPENDENT_FIELDS = {
     "duration_seconds": "chronometre : ne peut pas etre identique entre deux runs",
 }
 
+#: Le journal cite les chemins ABSOLUS des sorties. Les deux executions
+#: ecrivent forcement ailleurs, /dev/shm pour la chaine chiffree et /tmp pour
+#: l'execution en clair, et c'est le test lui-meme qui a choisi ces
+#: repertoires. On compare donc les noms de fichiers, pas les prefixes.
+#: Ce n'est pas une tolerance sur le resultat : les fichiers designes ont
+#: deja ete compares octet par octet a l'etape 1, et un ecart de NOM ferait
+#: toujours echouer la comparaison.
+_NORMALISE_ABSOLUTE_PATHS = True
+
 
 def _hash_tree(root: Path) -> dict[str, str]:
     """Empreinte de chaque fichier produit, par chemin relatif.
@@ -84,6 +93,24 @@ def _hash_tree(root: Path) -> dict[str, str]:
                     digest.update(block)
             tree[path.relative_to(root).as_posix()] = digest.hexdigest()
     return tree
+
+
+def _basenames(value):
+    """Reduit tout chemin absolu au nom du fichier, recursivement.
+
+    Renvoie aussi le nombre de remplacements, pour qu'un test puisse verifier
+    que la normalisation n'est pas devenue silencieusement inutile.
+    """
+    if isinstance(value, str) and value.startswith("/"):
+        return Path(value).name, 1
+    if isinstance(value, list):
+        pairs = [_basenames(item) for item in value]
+        return [v for v, _ in pairs], sum(n for _, n in pairs)
+    if isinstance(value, dict):
+        pairs = {k: _basenames(v) for k, v in value.items()}
+        return ({k: v for k, (v, _) in pairs.items()},
+                sum(n for _, (_, n) in pairs.items()))
+    return value, 0
 
 
 def _load_run_log(root: Path) -> dict:
@@ -196,12 +223,24 @@ class TestARealToolRunsBehindTheGate(unittest.TestCase):
         self.assertTrue(gate_log, "journal d'execution absent apres la chaine")
         self.assertEqual(sorted(clear_log), sorted(gate_log),
                          "le journal doit porter les memes champs")
+        normalised_replacements = 0
         for field in sorted(clear_log):
             if field in _RUN_DEPENDENT_FIELDS:
                 continue
+            clear_value, n_clear = _basenames(clear_log[field])
+            gate_value, n_gate = _basenames(gate_log[field])
+            normalised_replacements += n_clear
             self.assertEqual(
-                gate_log[field], clear_log[field],
+                n_gate, n_clear,
+                f"champ '{field}' : pas le meme nombre de chemins de part et d'autre")
+            self.assertEqual(
+                gate_value, clear_value,
                 f"champ '{field}' du journal : desaccord entre les deux executions")
+
+        self.assertGreater(
+            normalised_replacements, 0,
+            "aucun chemin absolu normalise : la normalisation est devenue "
+            "inutile, la retirer plutot que de la garder par habitude")
 
         # 3. Ce que ce test NE verifie pas, dit a voix haute.
         for field, reason in _RUN_DEPENDENT_FIELDS.items():
