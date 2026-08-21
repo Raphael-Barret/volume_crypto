@@ -1,0 +1,85 @@
+{
+  "generated_utc": "2026-08-21T18:12:35+00:00",
+  "commit": "9d58f87a4299",
+  "host": {
+    "python": "3.10.12",
+    "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.35",
+    "machine": "x86_64"
+  },
+  "runner": "identity",
+  "digest": "292f44fd326ed0aba990b65f3bbc682509e1bf53315e8f48b8f5eadfe171a255",
+  "entry_count": 10,
+  "entries_by_kind": {
+    "protocol": 7,
+    "boundary": 1,
+    "runner": 1,
+    "policy": 1
+  },
+  "entries": [
+    {
+      "kind": "protocol",
+      "label": "cryptoserve/app.py",
+      "digest": "f50836af7a03c047af6956fc3403c66bb7b5ca40dbda4d93d6c8513cebd68f91"
+    },
+    {
+      "kind": "protocol",
+      "label": "cryptoserve/enclave.py",
+      "digest": "40ebd26c4d7fbfe9de718e5dddc60c90e03f2c7511611ba89389007efa26afef"
+    },
+    {
+      "kind": "protocol",
+      "label": "cryptoserve/jobs.py",
+      "digest": "5a5f2910654ad1bc268124473eee4eba953d8dc324f1a859ee680234c4427b8d"
+    },
+    {
+      "kind": "protocol",
+      "label": "cryptoserve/measure.py",
+      "digest": "8744a8e44b6162c07504e6660aa63db2086898dda50ad1d4c89b8ccb9124c57a"
+    },
+    {
+      "kind": "protocol",
+      "label": "voltcrypt/crypto.py",
+      "digest": "6b17a083c1731e3780eaaf9494ac54454f7a0d68452327bfb8b4d76dec379214"
+    },
+    {
+      "kind": "protocol",
+      "label": "voltcrypt/keyexchange.py",
+      "digest": "27fd8022604c5ef44ee4bfd8ba5b4fe5bbc6e5a914b2aa89ce8f9c32ad2be6b7"
+    },
+    {
+      "kind": "protocol",
+      "label": "voltcrypt/attestation.py",
+      "digest": "d27d8a27e3149962588a76e704d2e61df187660c8bc7f1ab27e0677901178e41"
+    },
+    {
+      "kind": "boundary",
+      "label": "cryptoserve/boundary.py",
+      "digest": "e146627a9303ee209e2e6e57bd9f9ef6959955628721c34cf605a9b3299d5ce7"
+    },
+    {
+      "kind": "runner",
+      "label": "cryptoserve/runners/identity.py",
+      "digest": "2e2c7c82bc302e969ac89427a8c31dfdffc8c74a38a65e4485271c1c29522875"
+    },
+    {
+      "kind": "policy",
+      "label": "declared-policy",
+      "digest": "0eedf9cef3235622e02fecc9c5b2d3d86355618cf61a05b7c3fc9a2d588f7caf"
+    }
+  ],
+  "accepted_exclusions": [
+    "systeme d'exploitation et noyau",
+    "interpreteur Python et bibliotheque standard",
+    "paquets tiers (cryptography, et dependances du runner)",
+    "pilote et micrologiciel GPU",
+    "materiel et micrologiciel plateforme"
+  ],
+  "trust_root": {
+    "in_use": "simulated-software-root",
+    "hardware_devices_present": {
+      "/dev/sev-guest": false,
+      "/dev/tdx_guest": false
+    },
+    "note": "racine logicielle : protege contre un serveur modifie par erreur, pas contre un administrateur malveillant"
+  }
+}

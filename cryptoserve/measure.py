@@ -136,6 +136,11 @@ def build_manifest(runner=None, policy: Optional[dict] = None) -> Manifest:
         for path in runner.tcb_files():
             manifest.entries.append(
                 ManifestEntry("runner", _label(Path(path)), _file_digest(Path(path))))
+        # Ce qui ne se reduit pas a un fichier : typiquement le digest du
+        # virtualenv d'un outil. C'est l'entree qui fait que la mesure couvre
+        # le code lisant effectivement le clair.
+        for kind, label, digest in getattr(runner, "tcb_entries", lambda: [])():
+            manifest.entries.append(ManifestEntry(kind, label, digest))
 
     if policy is not None:
         canonical = json.dumps(policy, sort_keys=True,

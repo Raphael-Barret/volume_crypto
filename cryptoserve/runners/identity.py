@@ -24,6 +24,10 @@ class IdentityRunner:
         """Ce runner ne depend que de lui-meme et de la bibliotheque standard."""
         return [Path(__file__).resolve()]
 
+    def tcb_entries(self) -> list[tuple[str, str, str]]:
+        """Aucun environnement externe : rien a declarer au-dela du fichier."""
+        return []
+
     def run(self, plain_input: Path, workdir: Path, metadata: dict) -> RunOutcome:
         content = plain_input.read_bytes()
         output = workdir / "output"

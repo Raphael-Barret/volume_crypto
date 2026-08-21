@@ -47,7 +47,17 @@ class Runner(Protocol):
 
         Tout ce qui peut lire le clair. Pour un outil isole, cela inclut son
         `uv.lock` et l'inventaire de son virtualenv, pas seulement le module
-        Python qui l'appelle.
+        Python qui l'appelle : voir `tcb_entries()` pour ce qui ne se reduit
+        pas a une liste de fichiers.
+        """
+        ...
+
+    def tcb_entries(self) -> list[tuple[str, str, str]]:
+        """Entrees de manifeste que ce runner apporte, en plus de ses fichiers.
+
+        Trois champs : (kind, label, digest). Sert a ce qu'un runner declare
+        une empreinte qui n'est pas un fichier, typiquement le digest d'un
+        virtualenv entier. Un runner sans dependance externe rend [].
         """
         ...
 
