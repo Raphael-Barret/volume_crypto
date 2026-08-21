@@ -596,3 +596,54 @@ Note de methode, parce qu'elle vaut au-dela de ce cas : le temoin coutait deux
 executions et cinq minutes. Sans lui, l'ecart observe aurait pu etre impute a
 la chaine chiffree, et le papier aurait affirme une chose fausse dans les deux
 sens possibles.
+
+### 2026-08-21, WP3 : mesure de la variance, et une surprise a expliquer
+
+Trois executions, comparaison au niveau des voxels avec les mesures du
+protocole amont :
+
+| comparaison | voxels differents | part | Dice min |
+|---|---|---|---|
+| **temoin** clair A vs clair B | **0** | 0 | 1.000000 |
+| clair A vs chaine | 283 | 2,03e-06 | 0.999928 |
+| clair B vs chaine | 283 | 2,03e-06 | 0.999928 |
+
+Ce resultat **contredit** la conclusion de l'entree precedente, et c'est le
+genre de contradiction qu'il faut ecrire plutot que lisser.
+
+L'outil est **deterministe au niveau des voxels** : deux executions en clair
+donnent 0 ecart. Le premier controle avait compare des octets decompresses et
+conclu << DIFFERENT >> ; les deux resultats sont vrais si l'ecart tient a
+l'en-tete NIfTI et non aux donnees. La lecon de methode est que l'unite de
+comparaison decide de la conclusion, et qu'il faut la choisir avant de
+conclure : octets bruts, octets decompresses et voxels ne repondent pas a la
+meme question.
+
+Donc, contrairement a ce que j'avais ecrit, ce n'est pas l'outil qui varie.
+**C'est la chaine qui produit 283 voxels differents**, et le meme nombre
+contre les deux temoins, ce qui exclut du bruit aleatoire. Le script a refuse
+de conclure (<< la chaine ajoute de la variance, A EXPLIQUER >>), et c'est le
+bon comportement : un seuil de tolerance choisi apres coup pour faire passer
+un test est une facon de se mentir.
+
+**Premiere verification, la plus grave d'abord** : les octets qui entrent dans
+l'outil sont-ils ceux d'origine ? Oui, SHA-256 identique sur les 138 908 750
+octets, du fichier d'origine au dechiffre et au fichier stage. Le chiffrement
+est exact et disculpe.
+
+L'ecart vient donc de l'ENVIRONNEMENT d'execution, pas des donnees. Experience
+d'isolation en cours, avec un bras qui n'existait pas :
+
+    A  clair, disposition habituelle
+    B  clair, disposition de la chaine (/dev/shm), **sans aucun chiffrement**
+    C  la chaine complete
+
+`A vs B` isole la disposition seule, `B vs C` isole le chiffrement seul. Le
+bras B est celui qui manquait a l'experience precedente : sans lui,
+<< la chaine >> restait un bloc indivisible melangeant chiffrement et
+repertoire de travail.
+
+Statut du critere de parite : `cryptoserve/parity.py` gere deja les deux
+regimes (temoin nul, donc bit-identite exigee du traitement). Avec un temoin a
+0, le verdict actuel est **echec**, et il doit le rester tant que les 283
+voxels ne sont pas expliques.
