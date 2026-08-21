@@ -1,0 +1,20 @@
+[
+  {
+    "label": "identity",
+    "runner": "identity",
+    "scan_bytes": 138908750,
+    "client_wall_seconds": 1.675,
+    "plaintext_residency_seconds": 0.6682,
+    "workdir_backing": "memory",
+    "tool_seconds": null
+  },
+  {
+    "label": "real_tool",
+    "runner": "subprocess:BatchDentalSeg",
+    "scan_bytes": 138908750,
+    "client_wall_seconds": 78.888,
+    "plaintext_residency_seconds": 78.3324,
+    "workdir_backing": "memory",
+    "tool_seconds": 77.933
+  }
+]
