@@ -782,3 +782,57 @@ choix a des effets sur l'outil qui depassent la confidentialite. Un parametre
 pris pour des raisons de securite ne doit pas modifier silencieusement les
 conditions de calcul ; si l'experience confirme, la frontiere devra soit
 exposer ce choix, soit separer le repertoire du clair de celui de travail.
+
+### 2026-08-21, WP3 : l'experience factorielle ne trouve pas de facteur, et c'est la reponse
+
+Quatre bras en clair, un facteur a la fois, 139 106 682 voxels :
+
+| comparaison | voxels differents | facteur qui varie |
+|---|---|---|
+| P vs Q | 277 | sortie seule |
+| P vs R | 277 | entree seule |
+| **P vs S** | **36** | les deux |
+| R vs S | 283 | sortie, entree fixee |
+| Q vs S | 283 | entree, sortie fixee |
+
+**Le resultat est negatif, et sa forme est informative.** Si le chemin de
+sortie causait 277 ecarts et le chemin d'entree 277 autres, changer les deux
+n'en donnerait pas 36 : deux effets deterministes ne s'annulent pas. Cette
+structure est la signature d'un **bruit d'execution** et non d'une dependance
+au chemin.
+
+Il reste que les deux experiences precedentes avaient rendu exactement 0 entre
+deux executions en clair. Le phenomene n'est donc pas toujours present : c'est
+une non-determinisme **conditionnel**, dont je ne peux pas caracteriser la
+condition avec le nombre de tirages effectues. Trois hypotheses ont ete
+proposees et deux ont ete tuees par des donnees (etat du GPU, chemins) ; la
+troisieme demanderait des dizaines d'executions pour etre testee serieusement.
+
+**J'arrete ici la recherche de la cause racine**, et ce n'est pas un abandon
+deguise. La revendication du papier ne repose pas dessus :
+
+1. les octets qui entrent dans l'outil sont ceux d'origine, SHA-256 verifie
+   sur 138 908 750 octets ;
+2. des executions **sans aucun chiffrement** produisent des ecarts du meme
+   ordre que celles avec chiffrement.
+
+Ces deux faits disculpent la chaine independamment de ce qui cause le bruit.
+Continuer a bruler du GPU pour une cause dont la revendication ne depend pas
+serait du zele, pas de la rigueur.
+
+**Ce qu'il faut ecrire au lieu d'une cause** : le plancher de variance de
+l'outil sur cette machine, mesure sur 5 comparaisons en clair, vaut 36 a 283
+voxels, soit 2,6e-07 a 2,0e-06, avec un Dice minimal au-dessus de 0,9999. La
+chaine chiffree s'ecarte de 297 voxels (2,1e-06), c'est-a-dire a l'interieur
+de cet intervalle. C'est une phrase honnete, verifiable, et qui ne pretend pas
+comprendre ce qu'elle ne comprend pas.
+
+**Ce que cela impose au protocole de parite**, et qui est deja implemente dans
+`parity_experiment.py` : le temoin doit etre estime sur PLUSIEURS paires
+entrelacees, pas sur une seule. Un temoin a un tirage peut rendre 0 (comme
+mes deux premieres experiences) et faire croire a un outil deterministe, ou
+rendre 283 et faire croire a un plancher stable. Avec `--repeats N`,
+l'intervalle observe remplace le point unique.
+
+Reste ouvert, et note comme tel dans les limites du papier : la cause du bruit,
+et la raison pour laquelle il est absent dans certaines paires.
