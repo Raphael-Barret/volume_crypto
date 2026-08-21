@@ -555,3 +555,44 @@ detectes : copie lisible laissee dans le stockage, frontiere retiree du
 manifeste, runner retire du manifeste, mesure annoncee divergente du
 manifeste, residence non declaree. Plus deux tests que `skip` n'est jamais
 `passed`, et un temoin verifiant qu'un serveur sain passe.
+
+### 2026-08-21, WP3 : le critere de parite etait faux, et le temoin l'a montre
+
+Le test de parite comparait les sorties **octet par octet**. Un passage
+echouait sur `C_0001_T1_Seg.nii.gz`, un autre passait. Un ecart qui n'est pas
+stable ne vient pas de la chaine : il vient de l'outil ou du test.
+
+**Experience de controle** (`/tmp/control_determinism.py`) : le meme outil,
+deux fois **en clair**, sans chiffrement nulle part.
+
+| fichier | octets bruts | contenu decompresse |
+|---|---|---|
+| `C_0001_T1_Seg.nii.gz` | DIFFERENT | DIFFERENT |
+
+Deux executions identiques de l'outil ne produisent pas les memes octets, et
+la difference n'est pas un horodatage gzip puisqu'elle survit a la
+decompression : ce sont les voxels. C'est la non-determinisme CUDA de nnU-Net,
+celui-la meme que le protocole de parite existant documente pour AMASSS.
+
+Trois consequences, dans cet ordre :
+
+1. **La chaine chiffree est hors de cause.** Le temoin etablit que la variance
+   existe sans elle. Le premier passage qui echouait ne prouvait rien contre
+   la confidentialite, et le passage qui reussissait ne prouvait rien pour.
+2. **<< Bit-identique >> est le mauvais critere pour cet outil.** Le conserver
+   aurait produit un test qui echoue une fois sur deux, c'est-a-dire un test
+   qu'on finit par ignorer.
+3. **Le bon critere est une comparaison a deux echantillons** : l'ecart
+   clair-contre-chaine depasse-t-il l'ecart clair-contre-clair ? Si non, la
+   chaine n'introduit rien de mesurable. C'est une revendication plus faible
+   que la bit-identite, et c'est la seule que les donnees autorisent.
+
+La ligne de risque du plan (section 10) avait anticipe le cas et disait de
+reutiliser la definition de tolerance du protocole de parite existant plutot
+que d'en inventer une seconde. C'est ce qui est fait : desaccord au niveau des
+voxels et Dice par etiquette, les memes mesures que le protocole amont.
+
+Note de methode, parce qu'elle vaut au-dela de ce cas : le temoin coutait deux
+executions et cinq minutes. Sans lui, l'ecart observe aurait pu etre impute a
+la chaine chiffree, et le papier aurait affirme une chose fausse dans les deux
+sens possibles.
