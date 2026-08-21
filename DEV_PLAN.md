@@ -728,3 +728,39 @@ disent pas la meme chose :
 
 Les deux, pas l'un ou l'autre : le premier prouve que la chaine est neutre, le
 second mesure ce que voit un utilisateur.
+
+### 2026-08-21, WP3 : l'hypothese cudnn est refutee par sa propre sonde
+
+Sonde dediee : deux executions **en clair**, meme entree, meme repertoire,
+avec une charge GPU intercalee entre les deux (200 produits matriciels
+4096x4096) pour changer l'etat que `cudnn.benchmark` chronometre.
+
+    clair vs clair, avec charge GPU intercalee : 0 voxel sur 139 106 682
+
+**L'hypothese est morte.** L'etat du GPU ne suffit pas a faire bouger la
+sortie, donc `torch.backends.cudnn.benchmark = True` n'explique pas les 283
+voxels. J'avais ecrit ce mecanisme dans l'entree precedente comme
+<< candidat >> ; il faut maintenant l'ecrire comme refute, et ne pas laisser
+une explication plausible mais fausse trainer dans le journal.
+
+Ce que la refutation ne remet pas en cause : **le chiffrement reste
+disculpe**. Le bras A vs B ne contenait aucun octet chiffre et differait de
+283 voxels. Cette conclusion reposait sur un bras experimental, pas sur
+l'hypothese cudnn, et elle survit a sa chute.
+
+Ce qui reste a expliquer, et les facteurs encore confondus entre A et B :
+
+    1. le chemin de l'ENTREE  (fichier d'origine, ou copie dans /dev/shm)
+    2. le chemin de la SORTIE (/tmp, ou /dev/shm)
+
+La sonde vient d'eliminer un troisieme facteur (l'etat du GPU) et l'ordre
+d'execution, puisque ses deux runs differaient par le rang et donnaient 0.
+
+Experience suivante : quatre bras en clair, un facteur a la fois.
+
+    P  entree d'origine, sortie /tmp
+    Q  entree d'origine, sortie /dev/shm
+    R  copie /dev/shm,   sortie /tmp
+    S  copie /dev/shm,   sortie /dev/shm
+
+`P vs Q` isole la sortie, `P vs R` isole l'entree, `P vs S` reproduit A vs B.

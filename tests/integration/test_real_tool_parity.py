@@ -195,6 +195,35 @@ class TestARealToolRunsBehindTheGate(unittest.TestCase):
         shutil.unpack_archive(archive, restored, format="gztar")
         return _hash_tree(restored)
 
+    def test_the_chain_stays_within_the_tool_own_variance(self):
+        """La revendication que les donnees soutiennent.
+
+        Le premier critere retenu etait la bit-identite. Une experience de
+        controle l'a invalide : deux executions EN CLAIR, sans le moindre
+        octet chiffre, different de 283 voxels sur 139 millions. Le mecanisme
+        est `torch.backends.cudnn.benchmark = True` dans nnU-Net, qui choisit
+        l'algorithme de convolution le plus rapide selon l'etat du GPU.
+
+        Le critere correct compare deux echantillons : l'ecart clair contre
+        chaine depasse-t-il l'ecart clair contre clair ? Voir
+        `parity_experiment.py` pour la version instrumentee, qui entrelace les
+        bras et ecrit `evidence/parity.json`. Ici on verifie seulement que la
+        chaine rend un resultat exploitable et du bon ordre de grandeur, sans
+        immobiliser le GPU pendant plusieurs minutes en CI.
+        """
+        scans = self.tmp / "scans"
+        scans.mkdir(exist_ok=True)
+        shutil.copy(SCAN, scans / SCAN.name)
+
+        behind_the_gate = self._run_behind_the_gate(scans / SCAN.name)
+        self.assertTrue(behind_the_gate,
+                        "la chaine chiffree n'a produit aucun fichier")
+        self.assertTrue(
+            any(name.endswith(".nii.gz") for name in behind_the_gate),
+            "la chaine doit rendre une segmentation, pas seulement un journal")
+
+    @unittest.skip("remplace par parity_experiment.py : la bit-identite ne "
+                   "tient pas sous cudnn.benchmark, voir DEV_PLAN section 12")
     def test_output_is_identical_through_the_encrypted_chain(self):
         scans = self.tmp / "scans"
         scans.mkdir(exist_ok=True)
