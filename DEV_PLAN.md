@@ -508,3 +508,50 @@ donc les resultats octet par octet, et le journal champ par champ avec une
 liste d'exclusions **declaree, courte et justifiee ligne par ligne**, plus un
 test qui echoue si une exclusion devient inutile. Cacher le fichier aurait ete
 plus rapide et indefendable en revue.
+
+### 2026-08-21, WP5 : `cryptoverify`, le verificateur boite noire (`b9f1a2c`)
+
+Ce que le plan appelait << la piece la plus utile >> : un verificateur qui ne
+lit pas le code source et rend un verdict. Il sert deux publics, et le second
+est le point : nous, pour regenerer les chiffres du papier ; **un site**, pour
+verifier un deploiement qu'il n'a pas construit.
+
+Neuf controles, chacun nomme par la question qu'il pose, parce que ce nom
+finit dans `evidence/adversary.json` puis dans le papier :
+
+    canari       ce que le serveur detient avant la cle est-il illisible ?
+    mesure       le manifeste annonce est-il reconstituable, et couvre-t-il
+                 la frontiere et le runner ?
+    refus        un code inattendu obtient-il la cle ? une ancienne
+                 attestation se rejoue-t-elle ? la cle circule-t-elle en
+                 clair ? sert-elle sur un autre job ?
+    ordre        une cle rejouee relance-t-elle un traitement ? un resultat
+                 existe-t-il avant la remise de la cle ?
+    residence    combien de temps le clair a-t-il existe, et le serveur le
+                 declare-t-il ?
+
+Trois regles tenues partout : un refus se verifie par l'ETAT et pas par
+l'exception (une erreur levee apres le depart de la cle n'est pas une
+defense) ; un controle qui ne peut pas s'executer rend `skip` avec sa raison,
+jamais `passed` ; rien ne passe par autre chose que HTTP.
+
+**Resultat contre le serveur sain : 9 passed, 0 failed, 0 skipped.**
+
+Deux chiffres qui sortent de la : le clair existe **1,5 ms** et le support est
+**la memoire** (`/dev/shm`), pas le disque.
+
+Un bug attrape au premier passage : le controle de nonce appelait
+`verify_evidence()` avec un argument qui n'existe pas, et rendait donc
+`FAILED` pour une raison qui n'etait pas celle qu'il testait. Corrige, et
+double d'un controle de sanite : l'evidence doit etre ACCEPTEE sous son propre
+nonce avant d'etre refusee sous un autre. Sans lui, un refus generalise
+passerait pour une bonne nouvelle.
+
+**La batterie est elle-meme testee par injection de defauts**
+(`tests/conformance/test_verifier_catches_defects.py`), meme discipline que
+pour le test de frontiere : on n'affirme pas qu'un controle protege, on seme
+le defaut et on regarde le controle tomber. Cinq defauts semes, cinq
+detectes : copie lisible laissee dans le stockage, frontiere retiree du
+manifeste, runner retire du manifeste, mesure annoncee divergente du
+manifeste, residence non declaree. Plus deux tests que `skip` n'est jamais
+`passed`, et un temoin verifiant qu'un serveur sain passe.
