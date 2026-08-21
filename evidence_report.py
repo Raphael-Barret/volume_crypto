@@ -75,6 +75,37 @@ def measurement_evidence(runner=None) -> dict:
     }
 
 
+def environment_evidence(tool: str, tool_dir: Path, mode: str = "inventory") -> dict:
+    """Cout et couverture de la mesure d'un environnement d'outil.
+
+    Le chiffre qui compte pour le papier : mesurer un stack d'apprentissage
+    profond entier ne coute pas ce qu'on croit, et l'ecrire retire l'objection
+    << c'est trop cher, donc vous ne le ferez pas en production >>.
+    """
+    from cryptoserve import envdigest
+
+    result = envdigest.digest_environment(
+        tool=tool, venv_dir=tool_dir / ".venv",
+        lock_file=tool_dir / "uv.lock", mode=mode)
+    return {
+        "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "commit": _commit(),
+        "host": _host(),
+        "tool": result.tool,
+        "mode": result.mode,
+        "digest": result.digest,
+        "lock_digest": result.lock_digest,
+        "file_count": result.file_count,
+        "total_bytes": result.total_bytes,
+        "total_gigabytes": round(result.total_bytes / 1e9, 2),
+        "seconds": round(result.seconds, 3),
+        "coverage_note": (
+            "inventory : chemins, tailles et bits d'execution, plus le "
+            "contenu du lockfile. Ne detecte pas une substitution de meme "
+            "taille ; content la detecte, au cout du hachage integral."),
+    }
+
+
 def print_tcb_table(data: dict) -> None:
     """La table telle qu'elle irait dans un papier."""
     print(f"Mesure : {data['digest']}")
@@ -99,6 +130,10 @@ def main(argv=None) -> int:
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--print", dest="show", action="store_true",
                         help="afficher la table TCB au lieu d'ecrire le fichier")
+    parser.add_argument("--environment", metavar="TOOL_DIR",
+                        help="mesurer aussi le virtualenv d'un outil")
+    parser.add_argument("--mode", default="inventory",
+                        choices=["inventory", "content"])
     args = parser.parse_args(argv)
 
     data = measurement_evidence()
@@ -112,6 +147,15 @@ def main(argv=None) -> int:
     target.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     print(f"ecrit : {target.relative_to(ROOT)} "
           f"({data['entry_count']} entrees, digest {data['digest'][:16]}...)")
+
+    if args.environment:
+        tool_dir = Path(args.environment).expanduser().resolve()
+        env = environment_evidence(tool_dir.name, tool_dir, args.mode)
+        env_target = EVIDENCE / "environment.json"
+        env_target.write_text(json.dumps(env, indent=2, ensure_ascii=False) + "\n")
+        print(f"ecrit : {env_target.relative_to(ROOT)} "
+              f"({env['file_count']} fichiers, {env['total_gigabytes']} Go, "
+              f"{env['seconds']} s en mode {env['mode']})")
     return 0
 
 

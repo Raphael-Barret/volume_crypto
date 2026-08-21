@@ -1,0 +1,18 @@
+{
+  "generated_utc": "2026-08-21T18:21:57+00:00",
+  "commit": "06baad80ed44",
+  "host": {
+    "python": "3.10.12",
+    "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.35",
+    "machine": "x86_64"
+  },
+  "tool": "Batch_Dental_Seg",
+  "mode": "inventory",
+  "digest": "2cadcde5184f4008eada3799257de9394f72a0541487ea5e3bdfbacfbd679219",
+  "lock_digest": "f07613b5f570dd4b4f4c9d29cf84d99eaf45cdc9d2908769adb20974e5dc668e",
+  "file_count": 25570,
+  "total_bytes": 7589462346,
+  "total_gigabytes": 7.59,
+  "seconds": 0.404,
+  "coverage_note": "inventory : chemins, tailles et bits d'execution, plus le contenu du lockfile. Ne detecte pas une substitution de meme taille ; content la detecte, au cout du hachage integral."
+}

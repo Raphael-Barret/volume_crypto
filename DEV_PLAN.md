@@ -421,3 +421,90 @@ required.
 4. Confirmation that `slicer-remote-tool-server` can be checked out beside
    this project so `subprocess_tool.py` can reuse the real runner contract
    rather than reimplement it.
+
+---
+
+## 12. Journal d'avancement
+
+Tenu au fil du developpement. Chaque entree porte le commit qui la realise.
+
+### 2026-08-21, WP1 : la frontiere du clair (`9d58f87`)
+
+`server.py` (441 lignes, monolithe) devient le paquet `cryptoserve/` :
+`app.py` (routes, ne voit que du chiffre), `jobs.py` (machine a etats
+explicite avec table de transitions), `enclave.py` (garde des cles),
+`boundary.py` (la frontiere, seule a manipuler du clair), `measure.py`
+(manifeste), `runners/` (identite, puis outil reel).
+
+`server.py` reste comme facade : les 28 tests de pipeline passent **inchanges**,
+ce qui etait le critere d'acceptation.
+
+Trois choses que ce decoupage achete, et qui n'existaient pas avant :
+
+1. **Un test d'imports** (`tests/conformance/test_import_boundary.py`) verifie
+   qu'aucun module hors `boundary` ne nomme `decrypt_file`, `encrypt_file` ou
+   `read_metadata`. Verifie par mutation : injecter un appel dans `app.py`
+   fait echouer le test, le retirer le fait repasser. La revendication cesse
+   d'etre une promesse et devient une propriete du graphe d'imports.
+2. **Le clair va en memoire quand il tient** : `/dev/shm` si le volume tient
+   dans 40 % de la place libre, disque sinon, et le mode retenu est publie
+   dans le rapport du job (`workdir_backing`). Avant, tout allait sur disque.
+3. **La residence du clair est mesuree**, du premier octet dechiffre jusqu'a
+   la disparition effective du repertoire de travail. Bug attrape a la
+   relecture : lire le chronometre dans le `return` mesurait jusqu'AVANT le
+   `finally`, donc excluait la destruction. La destruction est donc explicite
+   en fin de bloc, le `finally` restant le filet du chemin d'echec.
+
+### 2026-08-21, WP2 : la surface de mesure (`06baad8`)
+
+Correctif du reproche S2. La mesure passe de **4 fichiers de protocole a un
+manifeste ordonne de 10 entrees** : protocole (7), frontiere (1), runner (1),
+politique (1). Le digest porte sur la forme canonique du manifeste, donc
+retirer une entree ou en changer l'ordre change le resultat.
+
+- `envdigest.py` mesure un environnement d'outil : `uv.lock` par son contenu,
+  toujours, plus l'inventaire du virtualenv (chemins, tailles, bits
+  d'execution) en mode `inventory`, ou le contenu integral en mode `content`.
+- `roots.py` separe la racine logicielle de la racine materielle. `HardwareRoot`
+  leve `NotImplementedError` et documente les points d'appel exacts
+  (SNP_GET_EXT_REPORT, TDX_CMD_GET_REPORT0, nv-attestation-sdk). La frontiere
+  du plan est visible dans le code, pas seulement dans une docstring.
+- `evidence_report.py` produit `evidence/measurement.json` : la table TCB que
+  le papier imprime, exclusions declarees comprises.
+
+**Le test qui porte le plus de poids** est celui qui doit PASSER : un fichier
+hors manifeste ne change pas le digest. C'est la definition executable de la
+base de confiance. Son pendant, parametre sur le manifeste, verifie que
+chaque entree presente compte, et couvre automatiquement toute entree ajoutee
+plus tard.
+
+Deux limites testees plutot que tues : le mode `inventory` ne detecte pas une
+substitution de meme taille (`test_inventory_mode_misses_a_same_size_substitution`,
+qui doit passer), et le mode `content` la detecte. Le mode retenu figure dans
+le manifeste.
+
+**Cout mesure, et il est bas** : 25 570 fichiers, 7,59 Go, **0,404 s** en mode
+`inventory` sur le virtualenv de Batch_Dental_Seg. L'objection << mesurer un
+stack entier coute trop cher pour etre fait en production >> ne tient pas.
+
+### 2026-08-21, WP3 : un vrai outil derriere la porte (en cours)
+
+Le test de parite a ete ecrit **avant** le runner, comme prevu, et a d'abord
+echoue pour la bonne raison (module absent). L'environnement s'est revele
+complet : GPU RTX 6000 Ada, poids DentalSegmentator (2,3 Go), Batch_Dental_Seg
+avec `pyproject.toml`, `uv.lock` et `.venv`, et le CBCT de reference de
+132,5 Mo.
+
+`runners/subprocess_tool.py` n'implemente pas un second systeme : il invoque
+exactement la commande du serveur d'outils,
+`<tool>/.venv/bin/python <runner.py> --job job.json`. La couche de
+confidentialite **substitue l'etape de traitement**, elle ne double pas le
+systeme.
+
+Premier resultat : sur les fichiers produits, un seul ecart, et il portait sur
+`BatchDentalSeg_report.json`, qui contient `duration_seconds`. Comparer ce
+fichier octet a octet revient a comparer deux chronometres. Le test compare
+donc les resultats octet par octet, et le journal champ par champ avec une
+liste d'exclusions **declaree, courte et justifiee ligne par ligne**, plus un
+test qui echoue si une exclusion devient inutile. Cacher le fichier aurait ete
+plus rapide et indefendable en revue.
