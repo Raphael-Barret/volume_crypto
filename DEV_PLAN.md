@@ -764,3 +764,21 @@ Experience suivante : quatre bras en clair, un facteur a la fois.
     S  copie /dev/shm,   sortie /dev/shm
 
 `P vs Q` isole la sortie, `P vs R` isole l'entree, `P vs S` reproduit A vs B.
+
+**Piste structurelle, trouvee dans le code de l'outil.** `pipeline.py:248` :
+
+    work_dir = os.path.join(output_dir, WORK_DIRNAME)
+
+Le repertoire de travail de nnU-Net, qui contient `nnunet_in` et
+`nnunet_out`, est **a l'interieur de `output_dir`**. Choisir `/dev/shm` comme
+sortie ne deplace donc pas seulement le fichier final : cela deplace toute la
+preparation et les intermediaires d'inference, du disque vers la RAM. C'est
+le facteur que le bras `P vs Q` isole, et il etait invisible tant qu'on
+raisonnait en termes de << ou est ecrit le resultat >>.
+
+Consequence de conception a retenir independamment de ce que dira
+l'experience : la frontiere choisit `/dev/shm` pour proteger le clair, et ce
+choix a des effets sur l'outil qui depassent la confidentialite. Un parametre
+pris pour des raisons de securite ne doit pas modifier silencieusement les
+conditions de calcul ; si l'experience confirme, la frontiere devra soit
+exposer ce choix, soit separer le repertoire du clair de celui de travail.
