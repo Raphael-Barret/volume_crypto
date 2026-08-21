@@ -680,3 +680,51 @@ suivent :
 Le bras B de l'experience d'isolation tranche : s'il s'ecarte de A alors qu'il
 ne contient AUCUN chiffrement, la chaine est disculpee et le mecanisme est
 confirme.
+
+### 2026-08-21, WP3 : le chiffrement est disculpe, par un bras sans chiffrement
+
+Experience d'isolation, trois bras, sur le CBCT de 132,5 Mo
+(139 106 682 voxels) :
+
+| comparaison | voxels differents | part | ce que le bras isole |
+|---|---|---|---|
+| **A vs B** | **283** | 2,03e-06 | disposition seule, **aucun chiffrement** |
+| B vs C | 297 | 2,13e-06 | chiffrement seul |
+| A vs C | 310 | 2,23e-06 | les deux |
+
+**Le bras A vs B est le resultat.** Ce sont deux executions EN CLAIR, sans le
+moindre octet chiffre, et elles different de 283 voxels. Les trois valeurs
+sont du meme ordre de grandeur et rien ne separe << la disposition >> du
+<< chiffrement >> : il n'y a qu'un plancher de variance, propre a l'outil sur
+cette machine, autour de 2e-06 avec un Dice au-dessus de 0,9999.
+
+La revendication defendable est donc :
+
+> la chaine chiffree ne fait pas sortir l'outil de sa propre variance
+> d'execution ; elle n'introduit aucun ecart distinguable de celui que deux
+> executions en clair produisent deja entre elles.
+
+Ce n'est pas la bit-identite annoncee dans le premier jet du papier. C'est
+plus faible, et c'est ce que les donnees soutiennent.
+
+**Ce que cette experience ne separe pas**, et qu'il faut ecrire : A et B
+different a la fois par la disposition des repertoires ET par leur rang dans
+l'ordre d'execution. Le confondu n'est pas leve. Une sonde dediee est en cours
+(deux executions en clair, meme disposition, avec une charge GPU intercalee)
+pour tester directement le mecanisme `cudnn.benchmark` sans melanger les deux
+facteurs.
+
+**Ce que cela change pour le protocole de parite.** Deux options, et elles ne
+disent pas la meme chose :
+
+1. **Neutraliser le mecanisme** (`cudnn.benchmark = False`,
+   `cudnn.deterministic = True`) et exiger la bit-identite. On teste alors une
+   propriete de l'outil, independante du thermique de la carte, au prix d'un
+   ralentissement a mesurer. C'est le test qui a sa place en CI.
+2. **Estimer le temoin correctement** en entrelacant les bras, et appliquer le
+   critere a deux echantillons de `cryptoserve/parity.py`. C'est le test qui a
+   sa place dans le papier, parce qu'il decrit ce qui se passe en conditions
+   reelles.
+
+Les deux, pas l'un ou l'autre : le premier prouve que la chaine est neutre, le
+second mesure ce que voit un utilisateur.
