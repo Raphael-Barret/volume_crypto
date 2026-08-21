@@ -620,8 +620,12 @@ conclure : octets bruts, octets decompresses et voxels ne repondent pas a la
 meme question.
 
 Donc, contrairement a ce que j'avais ecrit, ce n'est pas l'outil qui varie.
-**C'est la chaine qui produit 283 voxels differents**, et le meme nombre
-contre les deux temoins, ce qui exclut du bruit aleatoire. Le script a refuse
+**C'est la chaine qui produit 283 voxels differents**. Correction d'un
+raisonnement errone que j'avais d'abord ecrit : le fait que le nombre soit le
+meme contre les deux temoins (283 et 283) n'est **pas** une preuve
+supplementaire. A et B etant identiques a 0 voxel pres, tout troisieme volume
+s'en ecarte forcement du meme compte. C'est une tautologie arithmetique, pas
+un indice. Le script a refuse
 de conclure (<< la chaine ajoute de la variance, A EXPLIQUER >>), et c'est le
 bon comportement : un seuil de tolerance choisi apres coup pour faire passer
 un test est une facon de se mentir.
