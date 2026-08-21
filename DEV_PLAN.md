@@ -651,3 +651,32 @@ Statut du critere de parite : `cryptoserve/parity.py` gere deja les deux
 regimes (temoin nul, donc bit-identite exigee du traitement). Avec un temoin a
 0, le verdict actuel est **echec**, et il doit le rester tant que les 283
 voxels ne sont pas expliques.
+
+**Mecanisme candidat, trouve dans nnU-Net.** `predict_from_raw_data.py:61`
+pose `torch.backends.cudnn.benchmark = True`. Ce mode chronometre plusieurs
+algorithmes de convolution au premier appel pour une forme d'entree donnee et
+retient le plus rapide. Le choix depend donc de l'ETAT DU GPU au moment du
+chronometrage : frequence, temperature, fragmentation memoire, charge
+concurrente. Deux algorithmes corrects donnent des ordres de reduction
+flottante differents, d'ou quelques voxels de frontiere qui basculent. L'ordre
+de grandeur colle : 283 voxels sur 139 millions, soit 2e-06, aux bords des
+segments.
+
+Si ce mecanisme est le bon, alors l'outil est deterministe **en fonction de
+son entree ET de l'etat du GPU**, pas de son entree seule, et deux consequences
+suivent :
+
+1. **Le temoin etait mal estime.** Deux executions en clair lancees dos a dos
+   partagent l'etat du GPU, donc sous-estiment la variance. Un temoin correct
+   doit **entrelacer** les executions clair et chaine, pour que la variance
+   mesuree inclue celle de l'etat de la machine. C'est une erreur de protocole
+   de ma part, pas un resultat.
+2. **Le protocole de parite doit neutraliser le mecanisme plutot que le
+   tolerer** : fixer `cudnn.benchmark = False` et `cudnn.deterministic = True`
+   pour l'experience de parite, et rapporter separement le cout en temps. On
+   compare alors une propriete de l'outil, pas une propriete du thermique de la
+   carte.
+
+Le bras B de l'experience d'isolation tranche : s'il s'ecarte de A alors qu'il
+ne contient AUCUN chiffrement, la chaine est disculpee et le mecanisme est
+confirme.
