@@ -1,0 +1,36 @@
+{
+  "batch_size": 4,
+  "scans": [
+    "C_0001_T1.nii.gz",
+    "MG_test_scan.nii.gz",
+    "Pat_0002.nii.gz",
+    "MAMP_0002_T1.nii.gz"
+  ],
+  "single_scan_reference_seconds": {
+    "cuda": 80.7,
+    "cpu": 353.8
+  },
+  "runs": [
+    {
+      "device": "cuda",
+      "status": "ok",
+      "seconds": 139.2,
+      "summary": "4/4 scan(s) segmented",
+      "stderr_tail": ""
+    },
+    {
+      "device": "cpu",
+      "status": "ok",
+      "seconds": 1107.8,
+      "summary": "4/4 scan(s) segmented",
+      "stderr_tail": ""
+    }
+  ],
+  "note": "le checkpoint est charge une fois par lot, donc le cout fixe s'amortit ; comparer le facteur du lot au facteur par scan teste l'hypothese de linearite du papier.",
+  "batch_factor": 7.96,
+  "single_scan_factor": 4.38,
+  "seconds_per_scan": {
+    "cuda": 34.8,
+    "cpu": 276.9
+  }
+}

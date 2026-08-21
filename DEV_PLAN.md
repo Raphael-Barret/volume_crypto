@@ -836,3 +836,61 @@ l'intervalle observe remplace le point unique.
 
 Reste ouvert, et note comme tel dans les limites du papier : la cause du bruit,
 et la raison pour laquelle il est absent dans certaines paires.
+
+### 2026-08-21, WP4 : ce que l'acceleration achete, mesure sur trois axes
+
+Le papier affirmait un cout d'acces sans l'avoir mesure. Trois experiences,
+meme machine (Xeon w7-3555, 56 threads, RTX 6000 Ada), seul le device varie.
+
+| Experience | GPU | CPU | facteur |
+|---|---|---|---|
+| Batch_Dental_Seg, 1 scan | 80,7 s | 353,8 s | 4,4x |
+| Batch_Dental_Seg, lot de 4 | 139,2 s | 1107,8 s | **8,0x** |
+| **AMASSS, 1 scan, 5 structures** | 75,7 s | **1411,6 s** | **18,7x** |
+
+Deux resultats contre-intuitifs, et aucun n'etait celui que j'attendais.
+
+**Le lot creuse l'ecart au lieu de le reduire.** J'avais predit l'inverse : le
+checkpoint se charge une fois par lot, donc le cout fixe s'amortit et le
+facteur devait baisser. Il monte, de 4,4 a 8,0. L'amortissement profite bien
+plus au bras accelere (80,7 -> 34,8 s par scan) qu'au bras CPU (353,8 -> 276,9
+s), parce que sur CPU c'est le calcul qui domine et non le chargement. Le
+papier extrapolait lineairement du scan au lot ; l'extrapolation etait fausse
+et a ete remplacee par la mesure.
+
+**L'outil dominant coute quatre fois plus cher que celui que j'avais mesure.**
+Le papier portait une reserve que j'avais ecrite moi-meme : << l'outil mesure
+est l'un des plus legers, donc ces facteurs sont un plancher >>. AMASSS donne
+18,7x, soit 23,5 minutes pour un seul scan sans acceleration. La reserve est
+remplacee par un chiffre, et le chiffre vaut quatre fois la prudence.
+
+Consequence de redaction : il n'existe pas de valeur unique pour << le cout de
+travailler sans GPU >>. Elle va de 4,4x a 18,7x sur la meme machine. Deux
+outils etablissent que le facteur varie, **pas ce qui le gouverne** : taille du
+scan, nombre de structures et architecture du modele different tous les trois
+et aucun n'a ete tenu constant. Le papier le dit ainsi plutot que d'affirmer
+une cause.
+
+**Prealable au bras AMASSS** : AMASSS avait son `pyproject.toml` et son
+`uv.lock` mais pas de virtualenv. `uv sync` l'a construit, ce qui est en soi
+une petite verification du contrat d'outil : un outil du catalogue se rend
+executable sans toucher au serveur.
+
+### 2026-08-21, WP1 suite : le vrai aller-retour, mesure au lieu d'etre decrit
+
+La revue du papier avait releve que la phrase << round trip took 78 s end to
+end >> decrivait une experience qui n'avait pas eu lieu : la mesure appelait
+`boundary.process()` en processus, sans HTTP, sans attestation, sans remise de
+cle sur le fil. `experiments/endtoend.py` fait tourner la chaine complete en
+sept etapes, sur le meme volume, dans les deux regimes :
+
+| Condition, meme CBCT de 132,5 Mo | aller-retour client | residence du clair |
+|---|---|---|
+| traitement identite | 1,7 s | 0,67 s |
+| vrai outil de segmentation | 78,9 s (dont 77,9 s d'outil) | 78,3 s |
+
+Cela corrige aussi un second defaut : le papier appariait 1,60 s avec 1,5 ms de
+residence, alors que le 1,5 ms venait du volume canari de `cryptoverify`,
+long de 60 Ko. Un facteur 450 entre les deux charges, dans une phrase dont le
+but affiche etait d'eviter de tromper. Les deux regimes portent desormais le
+meme volume.

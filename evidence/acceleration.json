@@ -1,0 +1,19 @@
+{
+  "scan": "C_0001_T1.nii.gz",
+  "scan_bytes": 138908750,
+  "tool": "BatchDentalSeg",
+  "budget_seconds": 1800,
+  "note": "meme machine, meme scan, meme outil ; isole la presence d'acceleration. Ne mesure ni l'installation ni la maintenance.",
+  "runs": [
+    {
+      "device": "cuda",
+      "status": "ok",
+      "seconds": 80.7
+    },
+    {
+      "device": "cpu",
+      "status": "ok",
+      "seconds": 353.8
+    }
+  ]
+}

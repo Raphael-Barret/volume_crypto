@@ -1,0 +1,27 @@
+{
+  "tool": "AMASSS",
+  "scan": "MG_test_scan.nii.gz",
+  "structures": "MAND,MAX,CB,CV,UAW",
+  "budget_seconds": 3600,
+  "runs": [
+    {
+      "device": "cuda",
+      "status": "ok",
+      "seconds": 75.7,
+      "stderr_tail": ""
+    },
+    {
+      "device": "cpu",
+      "status": "ok",
+      "seconds": 1411.6,
+      "stderr_tail": ""
+    }
+  ],
+  "comparison_tool": {
+    "name": "BatchDentalSeg",
+    "cuda": 80.7,
+    "cpu": 353.8,
+    "factor": 4.38
+  },
+  "factor": 18.65
+}
