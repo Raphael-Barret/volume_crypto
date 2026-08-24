@@ -94,9 +94,22 @@ de torch, pas de GPU, pas de 3D Slicer, pas de modeles.** Python 3.9 minimum.
 
 | | exemple |
 |---|---|
+| **La racine de confiance** | le contenu de `data/trust/attestation_root.pub` cote serveur |
 | URL du serveur | `http://100.83.47.100:8811` |
 | Mesure attendue, par configuration | `18a70d58...` (64 caracteres hex) |
 | Le volume de test | un `.nii.gz`, le meme que cote serveur |
+
+> **La racine de confiance est indispensable et elle manquait dans la premiere
+> version de ce runbook.** Sans elle `client.py` echoue avant toute
+> verification, et le controle `evidence_is_bound_to_the_nonce` de la batterie
+> abandonne. Le fichier est gitignore et le serveur ne le publie pas : il faut
+> le copier a la main dans `data/trust/attestation_root.pub` du depot clone.
+> C'est une cle publique Ed25519 en PEM, trois lignes, sans risque a
+> transmettre. L'oubli etait invisible en boucle locale, ou client et serveur
+> partagent le meme `data/trust/`.
+
+Deposer ce fichier n'est pas une intervention : c'est une entree que le client
+est concu pour exiger, pas un contournement de panne.
 
 ### 2.3 Conditions reseau, avant les transferts
 
@@ -133,7 +146,20 @@ complete**, pas seulement la derniere ligne.
 
 ### 2.5 Residence du clair, cote serveur
 
-Le client affiche l'identifiant du job. Le recuperer ensuite :
+**Attention, point qui a coute trois tentatives lors du premier run.** En ligne
+de commande, `client.py` n'imprime que les 8 premiers caracteres de
+l'identifiant, le serveur n'expose aucune route de listing, et
+`/jobs/<prefixe>` rend `job inconnu`. Pour recuperer l'identifiant complet,
+appeler l'entree publique du module plutot que le CLI :
+
+```bash
+python3 -c "
+import client, json
+r = client.run('$SCAN', '$SRV', './out', expected_measurement='$M')
+print(json.dumps(r, indent=2))"
+```
+
+Le dictionnaire retourne contient `job_id` en entier. Puis :
 
 ```bash
 curl -s "$SRV/jobs/<job_id>" | python3 -m json.tool
