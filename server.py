@@ -6,6 +6,14 @@
     python server.py --measurement      # affiche la mesure du code et quitte
     python server.py --manifest         # affiche le manifeste mesure et quitte
 
+    # servir un VRAI outil, et ecouter sur une interface joignable :
+    python server.py --host 100.83.47.100 --tool BatchDentalSeg --device cuda
+
+Attention a --measurement : la mesure depend du runner actif, parce que le
+manifeste inclut le runner et l'environnement de l'outil. La mesure affichee
+par `--measurement` seul est celle du runner identite et ne vaut PAS pour un
+serveur lance avec --tool. Prendre la mesure sur le serveur qui tourne.
+
 Ce que ce serveur illustre, et qui est le point de la demonstration :
 
     il recoit des volumes CHIFFRES et ne peut RIEN en faire
@@ -35,6 +43,7 @@ from cryptoserve.boundary import process as process_boundary
 from cryptoserve.enclave import Enclave
 from cryptoserve.jobs import Job, JobState, Store
 from cryptoserve.runners import IdentityRunner
+from cryptoserve.runners.subprocess_tool import SubprocessToolRunner
 from voltcrypt import attestation, config
 
 __all__ = [
@@ -50,6 +59,57 @@ __all__ = [
 MEASURED_FILES = measure.PROTOCOL_FILES + measure.BOUNDARY_FILES
 
 
+#: Emplacements par defaut, identiques a ceux de experiments/endtoend.py.
+_UNC = Path.home() / "Projects" / "UNC"
+_DEFAULT_RUNNER_PATH = _UNC / "slicer-remote-tool-server" / "server" / "execution" / "runner.py"
+
+
+def _find_tool_dir(tool: str) -> Path:
+    """Localise le dossier d'un outil sous sadt-tools/tools/.
+
+    Le nom de l'outil et celui de son dossier ne coincident pas toujours :
+    l'outil `BatchDentalSeg` vit dans `Batch_Dental_Seg`. On accepte les deux
+    plutot que d'en faire un piege documente.
+    """
+    root = _UNC / "sadt-tools" / "tools"
+    direct = root / tool
+    if direct.exists():
+        return direct
+    if root.is_dir():
+        target = tool.replace("_", "").lower()
+        for candidate in sorted(root.iterdir()):
+            if candidate.is_dir() and candidate.name.replace("_", "").lower() == target:
+                return candidate
+    return direct
+
+
+def _build_runner(args):
+    """Choisit le runner. Sans --tool, on garde le traitement identite.
+
+    Le meme runner sert a calculer la mesure et a servir les jobs : c'est
+    volontaire. Une mesure calculee avec un runner et servie avec un autre
+    serait une attestation qui ne decrit pas ce qui tourne.
+    """
+    if not args.tool:
+        return IdentityRunner()
+
+    tool_dir = (Path(args.tool_dir) if args.tool_dir
+                else _find_tool_dir(args.tool))
+    runner_path = Path(args.runner_path) if args.runner_path else _DEFAULT_RUNNER_PATH
+
+    if not runner_path.exists():
+        raise SystemExit(f"runner du serveur d'outils introuvable : {runner_path}")
+    if not tool_dir.exists():
+        raise SystemExit(f"dossier de l'outil introuvable : {tool_dir}")
+
+    params = {"device": args.device}
+    if args.model:
+        params["model"] = args.model
+    return SubprocessToolRunner(
+        tool=args.tool, tool_dir=tool_dir, runner_path=runner_path,
+        params=params, input_argument=args.input_argument)
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -61,19 +121,34 @@ def main(argv=None) -> int:
                         help="afficher la mesure du code et quitter")
     parser.add_argument("--manifest", action="store_true",
                         help="afficher le manifeste mesure et quitter")
+    parser.add_argument("--tool", help="nom de l'outil a servir "
+                                       "(defaut : traitement identite)")
+    parser.add_argument("--tool-dir", help="dossier de l'outil "
+                                           "(defaut : sadt-tools/tools/<TOOL>)")
+    parser.add_argument("--runner-path", help="runner du serveur d'outils")
+    parser.add_argument("--model", help="chemin du modele passe a l'outil")
+    parser.add_argument("--device", default="cuda", help="cuda ou cpu")
+    parser.add_argument("--input-argument", default="scans")
     args = parser.parse_args(argv)
 
+    runner = _build_runner(args)
+
     if args.measurement or args.manifest:
-        runner = IdentityRunner()
-        manifest = measure.build_manifest(runner=runner, policy=None)
+        # On passe par un Enclave et non par build_manifest(policy=None) : la
+        # politique declaree entre dans le manifeste, donc un manifeste calcule
+        # sans elle produit un digest qu'aucun serveur n'annoncera jamais. Ce
+        # flag sert a donner au client la mesure attendue ; il doit donc rendre
+        # exactement ce qu'un serveur lance avec les memes options annonce.
+        enclave = Enclave(config.ATTESTATION_SIGNING_KEY, runner)
         if args.manifest:
-            print(json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False))
+            print(json.dumps(enclave.manifest.to_dict(), indent=2, ensure_ascii=False))
         else:
-            print(manifest.digest)
+            print(enclave.measurement)
         return 0
 
     httpd = serve(args.host, args.port,
-                  Path(args.storage) if args.storage else None)
+                  Path(args.storage) if args.storage else None,
+                  runner=runner)
     enclave = httpd.RequestHandlerClass.enclave
 
     print(f"Serveur de traitement, http://{args.host}:{args.port}")
@@ -84,6 +159,8 @@ def main(argv=None) -> int:
     print(f"  racine de confiance publiee dans : {config.TRUST_ROOT_PUBLIC_KEY}")
     print(f"  jobs stockes dans : {httpd.RequestHandlerClass.store.directory}")
     print()
+    if args.host not in ("127.0.0.1", "localhost"):
+        print(f"  ATTENTION : ecoute sur {args.host}, hors boucle locale.")
     print("  ATTENTION : racine de confiance SIMULEE, HTTP en clair.")
     print("  Demonstration de protocole, ne pas exposer sur un reseau.")
     print()

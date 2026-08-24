@@ -894,3 +894,59 @@ residence, alors que le 1,5 ms venait du volume canari de `cryptoverify`,
 long de 60 Ko. Un facteur 450 entre les deux charges, dans une phrase dont le
 but affiche etait d'eviter de tromper. Les deux regimes portent desormais le
 meme volume.
+
+### WP5 : la chaine sur deux machines, et deux defauts que la preparation a reveles
+
+Ecrit 2026-08-24. La review v8 du papier a identifie la mesure manquante la
+moins chere : la chaine chiffree a toujours ete mesuree avec le client et le
+serveur dans le meme processus, sur boucle locale. Le papier revendique un
+pattern pour des machines distantes sans GPU. Preparer ce protocole a suffi a
+faire tomber deux defauts, avant meme qu'une mesure soit prise.
+
+**Defaut 1 : `server.py` ne savait pas servir un vrai outil.** Le CLI ne
+proposait que le traitement identite ; seul `experiments/endtoend.py`
+construisait un `SubprocessToolRunner`, en dur. Le protocole aurait donc ete
+inexecutable tel qu'ecrit, exactement comme l'etape 1 du protocole portable
+l'a ete. Ajoute : `--tool`, `--tool-dir`, `--runner-path`, `--model`,
+`--device`, `--input-argument`, plus une resolution tolerante du dossier de
+l'outil (l'outil `BatchDentalSeg` vit dans `Batch_Dental_Seg`, et cet ecart
+meritait d'etre absorbe plutot que documente comme un piege).
+
+**Defaut 2, le vrai : `--measurement` rendait une mesure qu'aucun serveur
+n'annonce.** Le flag construisait le manifeste avec `policy=None`, alors que
+l'enclave y met sa politique declaree. Les deux digests ne pouvaient pas
+coincider. Or ce flag a une seule raison d'exister : donner au client la mesure
+attendue, transportee hors bande. Un operateur suivant la documentation aurait
+vu chaque transfert legitime refuse, et la seule facon de continuer aurait ete
+`--trust-on-first-use`, c'est-a-dire supprimer la propriete qu'on demontre.
+
+Le defaut est reste invisible parce que la mesure d'un cote et l'annonce de
+l'autre n'avaient jamais ete comparees : `endtoend.py` passe
+`expected_measurement=enclave.measurement` en direct, en processus, donc le
+chemin CLI n'etait exerce nulle part. Corrige en construisant l'enclave, ce qui
+rend l'accord vrai par construction plutot que par duplication de la politique.
+`tests/conformance/test_announced_measurement.py` le fixe en trois proprietes.
+
+**Une propriete supposee s'est revelee fausse en l'ecrivant.** Le premier jet du
+test affirmait que deux runners differents ne peuvent pas partager une
+attestation. Faux : le runner entre dans le manifeste par son code
+(`tcb_files()`) et par sa base de confiance (`tcb_entries()`), pas par son nom.
+Un runner dont le code vit hors des fichiers mesures et qui ne declare aucune
+entree serait indistinguable du traitement identite. Les runners livres vivent
+tous dans `cryptoserve/runners/`, qui est mesure, donc la limite ne mord pas
+aujourd'hui ; elle mord pour qui en ajoute un ailleurs. Le test dit maintenant
+ce qui est vrai, et la limite est ecrite dans son docstring plutot que decouverte
+plus tard.
+
+**Validation reelle, hors boucle locale.** Serveur lie a l'adresse du mesh,
+client lance depuis la meme machine mais a travers l'interface reseau :
+aller-retour complet en 1,44 s pour 94 Mo, attestation verifiee, sortie
+identique a l'entree, clair resident 601 ms en RAM. Et une demonstration non
+sollicitee du mecanisme : une premiere tentative a ete REFUSEE parce que
+`server.py` avait ete modifie apres le demarrage du serveur. Le code mesure
+avait change, le client a refuse la cle. C'est la propriete du papier,
+observee par accident sur son auteur.
+
+Suite : `RUNBOOK.md` (protocole autosuffisant pour la machine cliente) et
+`../../research_writing/AMIA_conf_27/07_experiments/encrypted_chain_experiment.md`
+(cadrage et destination des resultats dans le papier). 157 tests passent.
