@@ -1,0 +1,73 @@
+{
+  "machine": {
+    "model": "MacBook Pro (Mac16,5)",
+    "chip": "Apple M4 Max",
+    "ram_gb": 48,
+    "os": "macOS 26.5.2 (build 25F84), Darwin 25.5.0, arm64",
+    "python": "CPython 3.12.14 (arm64, via uv)"
+  },
+  "network": {
+    "path": "vpn",
+    "interface": "utun7",
+    "rtt_ms": 44.466,
+    "server_url": "http://100.83.47.100:8811"
+  },
+  "server": {
+    "runner": "identity",
+    "device": "",
+    "expected_measurement": "18a70d58977111a8612bcbd7006a0c604f00d31a72a211eee060dc5357e1a4b2",
+    "announced_measurement": "18a70d58977111a8612bcbd7006a0c604f00d31a72a211eee060dc5357e1a4b2"
+  },
+  "runs": [
+    {
+      "label": "R1_wrong_measurement",
+      "scan_bytes": 98611496,
+      "refused": true,
+      "refusal_reason": "ATTESTATION REFUSEE - mesure du code inattendue : 18a70d58977111a8... au lieu de 0000000000000000... La cle n'a PAS ete transmise.",
+      "encrypt_seconds": 0.0516,
+      "encrypt_mbps": 1823.0,
+      "upload_seconds": 40.83,
+      "upload_mbps": 2.3,
+      "download_seconds": null,
+      "total_seconds": 41.02,
+      "plaintext_residency_seconds": null,
+      "workdir_backing": "",
+      "output_identical_to_input": null,
+      "stdout_verbatim": "[1/7] Chiffrement local de MG_test_scan.nii.gz\n      94.0 Mo chiffres en 51.6 ms (1823 Mo/s)\n      sha256 original : c2a4f498e66355e0f6d3b63df1e75ffa...\n[2/7] Envoi vers http://100.83.47.100:8811\n      job 58b21b54 cree - 94.0 Mo transferes en 40.83 s (2 Mo/s)\n      le serveur detient un fichier qu'il ne peut pas lire\n[3/7] Demande d'attestation (nonce 3fa29a7112bd...)\n      mesure annoncee : 18a70d58977111a8612bcbd7006a0c60...\n[4/7] Verification de l'attestation\n\nATTESTATION REFUSEE - mesure du code inattendue : 18a70d58977111a8... au lieu de 0000000000000000...\n       La cle n'a PAS ete transmise. Le serveur conserve un\n       fichier chiffre qu'il ne peut pas exploiter."
+    },
+    {
+      "label": "R2_identity",
+      "scan_bytes": 98611496,
+      "refused": false,
+      "refusal_reason": "",
+      "encrypt_seconds": 0.054,
+      "encrypt_mbps": 1743.0,
+      "upload_seconds": 34.91,
+      "upload_mbps": 2.7,
+      "download_seconds": 43.3,
+      "total_seconds": 79.215,
+      "plaintext_residency_seconds": 0.5932,
+      "workdir_backing": "memory",
+      "output_identical_to_input": true,
+      "stdout_verbatim": "[1/7] Chiffrement local de MG_test_scan.nii.gz\n      94.0 Mo chiffres en 54.0 ms (1743 Mo/s)\n      sha256 original : c2a4f498e66355e0f6d3b63df1e75ffa...\n[2/7] Envoi vers http://100.83.47.100:8811\n      job c5347871 cree - 94.0 Mo transferes en 34.91 s (3 Mo/s)\n      le serveur detient un fichier qu'il ne peut pas lire\n[3/7] Demande d'attestation (nonce 2c48ceef171d...)\n      mesure annoncee : 18a70d58977111a8612bcbd7006a0c60...\n[4/7] Verification de l'attestation\n      signature valide, nonce correspondant, cle publique liee\n      mesure du code conforme, politique acceptee\n[5/7] Remise de la cle, chiffree pour le serveur atteste\n      traitement termine cote serveur : identite (aucune transformation)\n[6/7] Recuperation du resultat\n      94.0 Mo recus en 43.30 s\n[7/7] Dechiffrement local et verification\n      out_R2/MG_test_scan.nii.gz\n      sha256 restitue : c2a4f498e66355e0f6d3b63df1e75ffa...\n      identique a l'original : OUI"
+    },
+    {
+      "label": "R3_real_tool",
+      "scan_bytes": 98611496,
+      "refused": false,
+      "refusal_reason": "",
+      "encrypt_seconds": 0.0516,
+      "encrypt_mbps": 1824.0,
+      "upload_seconds": 34.82,
+      "upload_mbps": 2.7,
+      "download_seconds": 1.1,
+      "total_seconds": null,
+      "plaintext_residency_seconds": null,
+      "workdir_backing": "",
+      "output_identical_to_input": false,
+      "stdout_verbatim": "[1/7] Chiffrement local de MG_test_scan.nii.gz\n      94.0 Mo chiffres en 51.6 ms (1824 Mo/s)\n      sha256 original : c2a4f498e66355e0f6d3b63df1e75ffa...\n[2/7] Envoi vers http://100.83.47.100:8811\n      job b2b9ce7a cree - 94.0 Mo transferes en 34.82 s (3 Mo/s)\n      le serveur detient un fichier qu'il ne peut pas lire\n[3/7] Demande d'attestation (nonce 1b3118521b92...)\n      mesure annoncee : 63d6cb00ceffef89949bd2ed3d6f6544...\n[4/7] Verification de l'attestation\n      signature valide, nonce correspondant, cle publique liee\n      mesure du code conforme, politique acceptee\n[5/7] Remise de la cle, chiffree pour le serveur atteste\n      traitement termine cote serveur : ?\n[6/7] Recuperation du resultat\n      963.6 Ko recus en 1.10 s\n[7/7] Dechiffrement local et verification\n      out_R3/MG_test_scan.nii.gz\n      sha256 restitue : 4785b984bca37739493ac0449470a5bd...\n      identique a l'original : NON\n[!] Le fichier restitue DIFFERE de l'original."
+    }
+  ],
+  "interventions": [],
+  "notes": "UNITS. The schema field is named *_mbps but the client reports megabytes per\nsecond and that is what is recorded here: encrypt_mbps and upload_mbps are MB/s,\nnot megabits. Multiply by 8 for bits. Rename the field when merging if the\nworkstation file used bits, otherwise the two are not comparable.\n\nWHAT WAS ESTABLISHED. The chain works between two machines and the refusal\nproperty holds.\n - R1, the negative control, was run FIRST and was refused at step 4 with the\n   key never leaving the laptop.\n - R2, identity runner, completed all seven steps and the restored file is\n   bit-identical to the original (sha256 c2a4f498...). Plaintext existed on the\n   server for 0.5932 s, backing \"memory\".\n - R3, subprocess:BatchDentalSeg, completed all seven steps and returned a\n   963.6 Ko segmentation. output_identical_to_input is false, which is the\n   correct result for a real tool: the client's final equality check is written\n   for the identity runner, so its non-zero exit and its \"[!] Le fichier\n   restitue DIFFERE de l'original\" line are not failures of the chain.\n - The cryptoverify battery, run over HTTP only, returns 8 passed / 0 failed /\n   1 skipped against the identity server: VERDICT propre. The single skip is\n   stored_bytes_are_unreadable, which needs access to the server's job\n   directory and must be run on the server machine with --storage to close.\n\nNETWORK. Path is a Tailscale tunnel, not a LAN, and the runbook's own warning\napplies: RTT 44.466 ms average over 20 packets (min 37.139, max 98.302, stddev\n15.523), 0 percent loss, route leaving through utun7 to peer ldsodhckkv94.\nSustained upload 2.3-2.7 MB/s across four transfers of the same 94 MB scan.\nEvery total here is dominated by transfer, not by cryptography: encryption runs\nat 1743-1824 MB/s locally, roughly 700 times faster than the link. R2's 79.2 s\ntotal is 34.9 s up plus 43.3 s down plus 0.6 s of actual server-side plaintext\nexistence. Do not read these totals as the cost of the encrypted chain.\n\nR3 IS INCOMPLETE IN TWO WAYS, both recorded rather than repaired.\n 1. No plaintext_residency_seconds and no total_seconds. The client prints only\n    the first 8 characters of the job id, the server exposes no /jobs listing\n    route, and /jobs/<8-char-prefix> returns \"job inconnu\", so the residency\n    could not be fetched after the fact. A second R3 run launched specifically\n    to capture the full job id died at step 5 with\n    \"http.client.RemoteDisconnected: Remote end closed connection without\n    response\" when the server went down, most plausibly because the operator\n    stopped it to switch back to mode A. The residency for the tool runner\n    therefore remains unmeasured. Recovering it needs one more pass in mode B,\n    or the server console line for job b2b9ce7a.\n 2. Its expected measurement did not travel out of band. Section 0 of the\n    runbook requires the operator to read the measurement on the server console\n    and transmit it by another channel. That confirmation was requested and not\n    received, so R3 used the value the server itself announces on /health,\n    63d6cb00ceffef89949bd2ed3d6f6544d0c6538a23aba057cae41f1dacdb787d. R3\n    therefore demonstrates that the chain runs; it does NOT independently\n    demonstrate that the client refuses unexpected code. That property rests on\n    R1 and on the battery's key_is_withheld_when_measurement_differs, which\n    passed in both server modes.\nR2 does not have this weakness: its expected measurement,\n18a70d58977111a8612bcbd7006a0c604f00d31a72a211eee060dc5357e1a4b2, was derived\nlocally from the checkout with \"server.py --measurement\" and only then compared\nwith what the server announced. For the identity runner the reference is\nindependently reconstructible; for the tool runner it is not, because the\nmeasurement folds in a digest of the server's virtualenv\n(sadt-tools/tools/Batch_Dental_Seg/.venv), which does not exist on the client.\nThat asymmetry is structural and worth stating in the paper: a client can verify\nthe identity configuration from source, and must trust a published value for any\nreal tool.\n\nTRUST ROOT: A GAP IN THE RUNBOOK, AND AN UNVERIFIED PROVENANCE.\nSection 2.2 lists what the operator must supply - server URL, expected\nmeasurement, test volume - and omits data/trust/attestation_root.pub. Without\nthat file client.py raises at line 179, before any verification, and the battery\ncheck evidence_is_bound_to_the_nonce aborts. The file is gitignored and the\nserver does not publish it: GET /attestation returns only evidence and\nsignature. So none of R1, R2 or R3 can run on a second machine as the runbook is\ncurrently written. This is consistent with the runbook's own opening admission\nthat every published measurement so far was taken in local loopback, where\nclient and server share data/trust/ and the gap is invisible. Fix section 2.2.\nProvenance caveat: two scp attempts from this laptop failed, the second with\n\"barret@ldsodhckkv94: Permission denied (publickey,password)\". The file\nnevertheless appeared at data/trust/attestation_root.pub with a birth timestamp\nof 11:18:10 on 2026-08-24, earlier than this session's first inspection of that\ndirectory, which had shown only .gitkeep. Its provenance was therefore not\nestablished from this side. What was verified is functional only: the key\nvalidates a live attestation from the running server - signature valid, nonce\nbound, server public key bound. That proves it matches the server that answers,\nnot that it was obtained from it legitimately. The operator should confirm they\nplaced it; if not, R1, R2 and R3 must be redone.\n\nSERVER CONFIGURATION AND A SCHEMA LIMIT. The \"server\" block can hold one\nconfiguration, but these runs span two. It carries the identity server, which\nR1 and R2 used. R3 ran against a different one: runner subprocess:BatchDentalSeg,\ndevice cuda, announced measurement\n63d6cb00ceffef89949bd2ed3d6f6544d0c6538a23aba057cae41f1dacdb787d, started\n2026-08-24T15:11:53Z. Merging tools should not assume one server per file.\n\nCANARY LIMIT UNDER A REAL RUNNER. Against the tool server the battery dropped\nfrom 8 passed to 5, with a_key_cannot_be_replayed_on_the_same_job and\nplaintext_residency_is_bounded_and_reported both skipping on HTTP 422 at\n/jobs/<id>/key. That 422 comes from cryptoserve/app.py:200, raised after\nboundary.process fails - the key had already been unwrapped successfully, since\nan unwrap failure returns 400. The real BatchDentalSeg rejects the battery's\nsynthetic canary, which is not a valid volume. Consequence for the method: once\na real runner is attached, residency and key-ordering can only be exercised with\na genuine scan, that is by R3 itself. The battery is right to skip rather than\npass, but its coverage is narrower against a real tool than against identity.\n\nMETHOD DEVIATIONS, none of which repair anything.\n 1. Dependencies were installed with \"uv sync\" per the repository README rather\n    than \"python3 -m pip install --user 'cryptography>=3.4'\" per runbook 2.1.\n    The system python3 is 3.9.6 without cryptography; uv is the repository's own\n    documented path and does not touch the user environment. The client ran on\n    CPython 3.12.14 arm64, natively, not under Rosetta.\n 2. R1 and R2 were executed through a thin driver that calls client.run()\n    directly, the module's own public entry point, so that the full job id and\n    the job status could be captured. client.py prints only 8 characters and\n    main() discards the returned dict. No repository file was modified. R3's\n    recorded run is a plain \"uv run client.py\" invocation.\n 3. --trust-on-first-use was never used, in any run.\n 4. An SSH host key for ldsodhckkv94 was accepted on first contact to attempt\n    the scp. The scp then failed on authentication.\nPlacing data/trust/attestation_root.pub is not counted as an intervention: it is\na prerequisite input the client is designed to require, not a workaround for a\nfailure. The reader can judge from the paragraph above; interventions is left\nempty deliberately, not by omission.\n\nBOUNDS. One laptop, one server, one 94 MB CBCT, one tunnel, one day\n(2026-08-24). The trust root is software: cryptoserve/roots.py signs with a key\non the server's disk, so the refusal in R1 shows that a server whose code\ndiffers is rejected, and shows nothing against an administrator who can sign\nwhatever they like. Nothing here measures 3D Slicer: the Slicer client does not\nimplement this chain, client.py is a separate demonstration client."
+}
