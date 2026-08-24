@@ -1,0 +1,34 @@
+{
+  "scan": "MG_test_scan.nii.gz",
+  "scan_bytes": 98611496,
+  "backing_store": "/dev/shm (RAM)",
+  "host": {
+    "cpu": "Intel(R) Xeon(R) w7-3555",
+    "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.35"
+  },
+  "passes": 3,
+  "runs": [
+    {
+      "encrypt_mb_s": 541.4,
+      "decrypt_mb_s": 628.3
+    },
+    {
+      "encrypt_mb_s": 552.1,
+      "decrypt_mb_s": 630.9
+    },
+    {
+      "encrypt_mb_s": 567.2,
+      "decrypt_mb_s": 649.9
+    }
+  ],
+  "encrypt_mb_s_range": [
+    541.4,
+    567.2
+  ],
+  "decrypt_mb_s_range": [
+    628.3,
+    649.9
+  ],
+  "size_overhead_bytes": 668,
+  "note": "En RAM. Sur disque le chiffre est plus bas et mesure le disque. A comparer au lien reseau, pas dans l'absolu : c'est le rapport entre les deux qui porte l'argument du papier."
+}

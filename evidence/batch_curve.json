@@ -1,0 +1,143 @@
+{
+  "scans": [
+    "MG_test_scan.nii.gz",
+    "C_0001_T1.nii.gz",
+    "Pat_0002.nii.gz",
+    "MAMP_0002_T1.nii.gz"
+  ],
+  "scan_bytes": [
+    98611496,
+    138908750,
+    98572755,
+    175829631
+  ],
+  "composition": "quatre volumes distincts en rotation, noms distincts",
+  "runs": [
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cuda",
+      "batch_size": 1,
+      "status": "ok",
+      "seconds": 59.1,
+      "seconds_per_scan": 59.1,
+      "budget_seconds": 735
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cpu",
+      "batch_size": 1,
+      "status": "ok",
+      "seconds": 277.0,
+      "seconds_per_scan": 277.0,
+      "budget_seconds": 1170
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cuda",
+      "batch_size": 2,
+      "status": "ok",
+      "seconds": 85.2,
+      "seconds_per_scan": 42.6,
+      "budget_seconds": 870
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cuda",
+      "batch_size": 4,
+      "status": "ok",
+      "seconds": 142.7,
+      "seconds_per_scan": 35.7,
+      "budget_seconds": 1140
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cuda",
+      "batch_size": 8,
+      "status": "ok",
+      "seconds": 234.7,
+      "seconds_per_scan": 29.3,
+      "budget_seconds": 1680
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cuda",
+      "batch_size": 10,
+      "status": "ok",
+      "seconds": 263.8,
+      "seconds_per_scan": 26.4,
+      "budget_seconds": 1950
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cuda",
+      "batch_size": 1,
+      "status": "ok",
+      "seconds": 67.9,
+      "seconds_per_scan": 67.9,
+      "budget_seconds": 727
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cuda",
+      "batch_size": 2,
+      "status": "ok",
+      "seconds": 149.4,
+      "seconds_per_scan": 74.7,
+      "budget_seconds": 855
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cuda",
+      "batch_size": 4,
+      "status": "ok",
+      "seconds": 303.2,
+      "seconds_per_scan": 75.8,
+      "budget_seconds": 1110
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cuda",
+      "batch_size": 8,
+      "status": "ok",
+      "seconds": 599.3,
+      "seconds_per_scan": 74.9,
+      "budget_seconds": 1620
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cuda",
+      "batch_size": 10,
+      "status": "ok",
+      "seconds": 741.7,
+      "seconds_per_scan": 74.2,
+      "budget_seconds": 1875
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cpu",
+      "batch_size": 2,
+      "status": "ok",
+      "seconds": 586.7,
+      "seconds_per_scan": 293.3,
+      "budget_seconds": 1740
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cpu",
+      "batch_size": 4,
+      "status": "ok",
+      "seconds": 1113.8,
+      "seconds_per_scan": 278.5,
+      "budget_seconds": 2880
+    }
+  ],
+  "factors": {
+    "BatchDentalSeg": {
+      "1": 4.69,
+      "2": 6.89,
+      "4": 7.81
+    },
+    "AMASSS": {}
+  },
+  "note": "Un facteur par taille de lot. Il s'elargit si le chargement du modele s'amortit plus vite du cote accelere, et plafonne quand ce cout fixe devient negligeable des deux cotes."
+}

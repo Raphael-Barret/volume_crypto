@@ -950,3 +950,63 @@ observee par accident sur son auteur.
 Suite : `RUNBOOK.md` (protocole autosuffisant pour la machine cliente) et
 `../../research_writing/AMIA_conf_27/07_experiments/encrypted_chain_experiment.md`
 (cadrage et destination des resultats dans le papier). 157 tests passent.
+
+### WP6 : ce que le lot achete vraiment, et pourquoi ca depend de l'outil
+
+Ecrit 2026-08-24. Le papier portait une derniere extrapolation : le cout d'une
+cohorte, deduit arithmetiquement d'un lot de quatre. Une extrapolation est ce
+qu'un relecteur attaque en premier. `experiments/batch_curve.py` la remplace par
+une courbe sur cinq tailles (1, 2, 4, 8, 10), deux outils, deux appareils.
+
+**Trois choix de conception, et leurs raisons.**
+
+Les lots melangent quatre volumes distincts en rotation plutot que des copies
+d'un meme fichier. L'operateur proposait dix copies, ce qui aurait donne une
+charge par scan constante et une comparaison plus propre ; mais le cache disque
+et l'etat du modele auraient favorise les copies suivantes et gonfle le benefice
+du lot. La rotation coute de la variance et evite un biais oriente. Elle a un
+prix, visible plus bas.
+
+L'appareil est la boucle externe, sur remarque de l'operateur. Le bras accelere
+coute une vingtaine de fois moins ; le parcourir en entier d'abord donne la
+forme complete de la courbe GPU en quelques minutes, avant d'engager les heures
+de CPU. Si la machine est reprise, on a une courbe entiere et non deux moities.
+
+Chaque point est ecrit des qu'il est mesure et une relance reprend ce qui
+manque. Une interruption laisse un resultat partiel exploitable.
+
+**Le resultat GPU, et il inverse une intuition.**
+
+| outil | cout fixe | cout marginal | s/scan de n=1 a n=10 |
+|---|---|---|---|
+| BatchDentalSeg | 40,5 s | 22,3 s | 59,1 -> 26,4 |
+| AMASSS | 1,3 s | 74,0 s | 67,9 -> 74,2 |
+
+Le lot divise par 2,2 le cout par scan de l'outil leger et **ne fait rien pour
+l'outil dominant**. La raison est mecanique : BatchDentalSeg est domine par le
+chargement du modele, qui s'amortit ; AMASSS est domine par l'inference de cinq
+structures par scan, qui ne s'amortit pas. Grouper les scans est donc une
+optimisation qui ne sert que les outils legers, ce qui est l'inverse de ce que
+le papier laissait entendre.
+
+**Une erreur d'analyse, corrigee sur-le-champ.** En lisant les premiers points
+j'ai annonce que le cout par scan d'AMASSS *montait* entre n=1 et n=2 (67,9 puis
+74,7 s). Faux : c'est un artefact de la rotation, le premier volume faisant 98,6
+Mo et le second 138,9. Normalise par la charge, AMASSS descend de 0,689 a 0,588
+s/Mo puis se stabilise. C'est le prix du choix de rotation, et il tombe des que
+la charge moyenne se stabilise, a partir de n=4. La lecture propre est donc
+au-dela de n=4, et l'ajustement lineaire est fait sur n>=2 pour cette raison.
+
+**Deux artefacts manquants, produits a cette occasion.** Un audit declenche par
+une question de l'operateur (« les resultats sont-ils reproductibles, aussi par
+les traces JSON ? ») a montre que sur 130 nombres du corps du papier, cinq
+etaient de vraies mesures sans fichier : le debit de chiffrement, mesure dans un
+terminal et jamais enregistre, et la paire de parite 283/297, issue d'une
+experience dont le fichier n'avait pas ete conserve. `experiments/throughput.py`
+et un second `parity_run2.json` comblent les deux. Un nombre publie dont
+l'artefact n'existe pas n'est pas reproductible, il est seulement plausible.
+
+Au passage, la re-mesure du debit a donne 707-718 Mo/s sous charge contre
+541-567 Mo/s machine libre, la ou le papier annoncait 553-563. Le chiffre publie
+etait bon, mais ses conditions n'etaient consignees nulle part : c'est
+exactement le defaut reproche au papier trois fois cette semaine.

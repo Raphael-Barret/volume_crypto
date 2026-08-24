@@ -198,7 +198,7 @@ def main(argv=None) -> int:
               f"Dice min {treatment.dice_min:.6f}")
         print(f"VERDICT : {'parite tenue' if verdict.passed else 'PARITE REFUSEE'}")
         print(f"          {verdict.reason}")
-        print(f"ecrit : {target.relative_to(ROOT)}")
+        print(f"ecrit : {target}")
         return 0 if verdict.passed else 1
 
 
