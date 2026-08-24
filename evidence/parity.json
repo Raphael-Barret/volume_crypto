@@ -1,0 +1,42 @@
+{
+  "generated_utc": "2026-08-24T16:24:19+00:00",
+  "host": {
+    "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12"
+  },
+  "tool": "BatchDentalSeg",
+  "scan": "C_0001_T1.nii.gz",
+  "scan_bytes": 138908750,
+  "repeats": 2,
+  "interleaved": true,
+  "cudnn_benchmark_disabled": false,
+  "verdict": {
+    "control": {
+      "differing_voxels": 314,
+      "differing_fraction": 2.257260366543715e-06,
+      "dice_min": 0.9999275484821407,
+      "dice_mean": 0.9999684986969972
+    },
+    "treatment": {
+      "differing_voxels": 323,
+      "differing_fraction": 2.321958912081592e-06,
+      "dice_min": 0.9999033909767172,
+      "dice_mean": 0.9999633433148818
+    },
+    "tolerance_factor": 3.0,
+    "passed": true,
+    "reason": "la chaine (323 voxels) reste dans la variance propre de l'outil (314 voxels), Dice minimal 0.999903"
+  },
+  "residency_seconds": [
+    80.268,
+    79.656
+  ],
+  "workdir_backing": [
+    "memory",
+    "memory"
+  ],
+  "tool_seconds": [
+    79.953,
+    79.331
+  ]
+}
