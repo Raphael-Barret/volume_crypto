@@ -1,0 +1,88 @@
+{
+  "generated_utc": "2026-08-24T15:43:29+00:00",
+  "target": "http://100.83.47.100:8811",
+  "storage_inspected": "data/server_storage",
+  "counts": {
+    "passed": 7,
+    "failed": 0,
+    "skipped": 2
+  },
+  "clean": true,
+  "checks": [
+    {
+      "check": "check_stored_bytes_are_unreadable",
+      "question": "Ce que le serveur detient avant la cle est-il illisible ?",
+      "verdict": "passed",
+      "detail": "job bf962795 stocke, aucun marqueur retrouve",
+      "did_not_move": {}
+    },
+    {
+      "check": "check_announced_measurement_matches_the_published_manifest",
+      "question": "La mesure annoncee est-elle reconstituable, et couvre-t-elle le clair ?",
+      "verdict": "passed",
+      "detail": "14 entrees, digest reconstitue, frontiere et runner couverts",
+      "did_not_move": {}
+    },
+    {
+      "check": "check_key_is_withheld_when_measurement_differs",
+      "question": "Un code inattendu obtient-il la cle ?",
+      "verdict": "passed",
+      "detail": "mesure annoncee 63d6cb00ceffef89..., attendue 0000000000000000...",
+      "did_not_move": {
+        "cle": "non transmise",
+        "resultat": "aucun"
+      }
+    },
+    {
+      "check": "check_evidence_is_bound_to_the_nonce",
+      "question": "Une ancienne attestation peut-elle etre rejouee ?",
+      "verdict": "passed",
+      "detail": "acceptee sous son nonce, refusee sous un autre",
+      "did_not_move": {
+        "cle": "non transmise"
+      }
+    },
+    {
+      "check": "check_wrapped_key_never_contains_the_key",
+      "question": "La cle circule-t-elle en clair sur le reseau ?",
+      "verdict": "passed",
+      "detail": "paquet de 92 octets, cle absente",
+      "did_not_move": {
+        "cle": "jamais en clair sur le reseau"
+      }
+    },
+    {
+      "check": "check_key_is_bound_to_its_job",
+      "question": "Une cle sert-elle sur un autre job que le sien ?",
+      "verdict": "passed",
+      "detail": "cle du job 79da342b refusee sur 1f3c3696, etat reste 'received'",
+      "did_not_move": {
+        "etat du job vise": "received",
+        "resultat": "aucun"
+      }
+    },
+    {
+      "check": "check_a_key_cannot_be_replayed_on_the_same_job",
+      "question": "Une cle rejouee relance-t-elle un traitement ?",
+      "verdict": "skipped",
+      "detail": "/jobs/a3ac7ef499644156b71dcdc1faeb0562/key : HTTP 422",
+      "did_not_move": {}
+    },
+    {
+      "check": "check_result_does_not_exist_before_the_key",
+      "question": "Un resultat existe-t-il avant la remise de la cle ?",
+      "verdict": "passed",
+      "detail": "aucun resultat disponible, etat 'received'",
+      "did_not_move": {
+        "resultat": "aucun"
+      }
+    },
+    {
+      "check": "check_plaintext_residency_is_bounded_and_reported",
+      "question": "Combien de temps le clair existe-t-il, et le serveur le declare-t-il ?",
+      "verdict": "skipped",
+      "detail": "/jobs/b158fb4bf7194c5ca5942530f661fa7d/key : HTTP 422",
+      "did_not_move": {}
+    }
+  ]
+}
