@@ -1010,3 +1010,29 @@ Au passage, la re-mesure du debit a donne 707-718 Mo/s sous charge contre
 541-567 Mo/s machine libre, la ou le papier annoncait 553-563. Le chiffre publie
 etait bon, mais ses conditions n'etaient consignees nulle part : c'est
 exactement le defaut reproche au papier trois fois cette semaine.
+
+**Resultat final de WP6, et il corrige le papier.** Vingt points prevus, dix-neuf
+mesures, un volontairement omis.
+
+| outil | appareil | cout fixe | marginal | 40 scans |
+|---|---|---|---|---|
+| BatchDentalSeg | GPU | 40,5 s | 22,3 s | 15,6 min |
+| BatchDentalSeg | CPU | 47,0 s | 269,9 s | 3,0 h |
+| AMASSS | GPU | 1,3 s | 74,0 s | 49 min |
+| AMASSS | CPU | 362,7 s | 1293,4 s | 14,5 h |
+
+Le facteur CPU/GPU de BatchDentalSeg passe de 4,7x a un scan a 10,4x a dix, et
+grimpe encore. Celui d'AMASSS ne bouge pas : 20,5x puis 17,9x.
+
+Le papier affirmait << batching widens that factor >> en generalisant depuis le
+seul lot de quatre de l'outil leger. C'est faux pour l'outil dominant. La phrase
+est corrigee : la dependance au lot est une propriete de l'outil, pas de
+l'accelerateur. Le mecanisme est que le chargement du modele est du travail
+disque et hote que l'accelerateur ne raccourcit pas ; il reste donc entier
+pendant que le cout marginal fond, ce qui le rend dominant du cote accelere et
+negligeable du cote CPU. Un outil sans cout fixe, comme AMASSS, n'a rien a
+amortir nulle part.
+
+Le point n=4 refait, a des jours d'intervalle et sur les memes volumes, la mesure
+de `batch_scaling.json` : 2,5 % d'ecart sur GPU, 0,5 % sur CPU. C'est le seul
+resultat du papier reproduit independamment.

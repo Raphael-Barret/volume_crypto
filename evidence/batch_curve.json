@@ -129,15 +129,76 @@
       "seconds": 1113.8,
       "seconds_per_scan": 278.5,
       "budget_seconds": 2880
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cpu",
+      "batch_size": 8,
+      "status": "ok",
+      "seconds": 2218.1,
+      "seconds_per_scan": 277.3,
+      "budget_seconds": 5160
+    },
+    {
+      "tool": "BatchDentalSeg",
+      "device": "cpu",
+      "batch_size": 10,
+      "status": "ok",
+      "seconds": 2745.7,
+      "seconds_per_scan": 274.6,
+      "budget_seconds": 6300
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cpu",
+      "batch_size": 1,
+      "status": "ok",
+      "seconds": 1390.8,
+      "seconds_per_scan": 1390.8,
+      "budget_seconds": 2850
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cpu",
+      "batch_size": 2,
+      "status": "ok",
+      "seconds": 2949.4,
+      "seconds_per_scan": 1474.7,
+      "budget_seconds": 5100
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cpu",
+      "batch_size": 4,
+      "status": "ok",
+      "seconds": 5231.9,
+      "seconds_per_scan": 1308.0,
+      "budget_seconds": 9600
+    },
+    {
+      "tool": "AMASSS",
+      "device": "cpu",
+      "batch_size": 10,
+      "status": "ok",
+      "seconds": 13296.3,
+      "seconds_per_scan": 1329.6,
+      "budget_seconds": 23100
     }
   ],
   "factors": {
     "BatchDentalSeg": {
       "1": 4.69,
       "2": 6.89,
-      "4": 7.81
+      "4": 7.81,
+      "8": 9.45,
+      "10": 10.41
     },
-    "AMASSS": {}
+    "AMASSS": {
+      "1": 20.48,
+      "2": 19.74,
+      "4": 17.26,
+      "10": 17.93
+    }
   },
   "note": "Un facteur par taille de lot. Il s'elargit si le chargement du modele s'amortit plus vite du cote accelere, et plafonne quand ce cout fixe devient negligeable des deux cotes."
 }
