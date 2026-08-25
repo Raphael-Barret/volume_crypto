@@ -5,6 +5,7 @@
     N2  la residence du clair sur LE MEME volume de 132,5 Mo en traitement
         identite, pour ne plus apparier un 60 Ko avec un 132,5 Mo.
 """
+import os
 import json, shutil, tempfile, threading, time
 from pathlib import Path
 
@@ -13,7 +14,10 @@ from cryptoserve.app import serve
 from cryptoserve.runners import IdentityRunner
 from cryptoserve.runners.subprocess_tool import SubprocessToolRunner
 
-UNC = Path.home()/"Projects"/"UNC"
+#: Racine des depots. Codee en dur, elle supposait l'arborescence du poste
+#: d'origine et faisait echouer toute execution ailleurs des la premiere ligne.
+#: Surchargeable par SADT_ROOT, avec la valeur historique par defaut.
+UNC = Path(os.environ.get("SADT_ROOT", Path.home() / "Projects" / "UNC"))
 TOOLS = UNC/"sadt-tools"/"tools"/"Batch_Dental_Seg"
 RUNNER = UNC/"slicer-remote-tool-server"/"server"/"execution"/"runner.py"
 MODEL = UNC/"slicer-remote-tool-server"/"DATA"/"BatchDentalSeg"/"models"/"DentalSegmentator"
