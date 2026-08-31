@@ -18,3 +18,7 @@ keywords:
 - confidential computing
 - remote attestation
 license: MIT
+identifiers:
+- type: doi
+  value: 10.5281/zenodo.22210191
+  description: Concept DOI, always resolving to the latest version
