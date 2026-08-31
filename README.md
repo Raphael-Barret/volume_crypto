@@ -1,213 +1,224 @@
-# voltcrypt — chiffrement de fichiers volumiques
+# voltcrypt, encryption for volumetric imaging files
 
-Chiffrement **AES-256-GCM** de fichiers d'imagerie (`.vtk`, `.nii`, `.nii.gz`,
-`.nrrd`, `.mha`, `.dcm`, `.stl`, …), fichier par fichier ou par dossier
-complet, avec generation de la cle de dechiffrement.
+**AES-256-GCM** encryption of imaging files (`.vtk`, `.nii`, `.nii.gz`,
+`.nrrd`, `.mha`, `.dcm`, `.stl`, and so on), one file at a time or a whole
+folder, with generation of the decryption key.
 
-> **Guide pas a pas, cas d'usage et depannage : [GUIDE_UTILISATION.md](GUIDE_UTILISATION.md).**
-> Ce README donne la vue d'ensemble et les details du format.
+> **Step-by-step guide, use cases and troubleshooting:
+> [GUIDE_UTILISATION.md](GUIDE_UTILISATION.md) (in French).**
+> This README gives the overview and the format details.
 
-Concu pour des volumes de plusieurs Go : lecture par blocs de 4 Mio, jamais de
-chargement complet en RAM. Mesure sur cette machine : **~320 Mo/s au
-chiffrement, ~470 Mo/s au dechiffrement**, pour un surcout de taille de
-~2,7 Ko sur 512 Mo.
+Designed for volumes of several GB: reads in 4 MiB blocks, never loads a whole
+file into RAM. Measured on this machine: **~320 MB/s encrypting, ~470 MB/s
+decrypting**, for a size overhead of ~2.7 kB on 512 MB.
 
 ---
 
 ## Installation
 
-Le projet utilise [uv](https://docs.astral.sh/uv/). Si tu ne l'as pas encore :
+The project uses [uv](https://docs.astral.sh/uv/). If you do not have it yet:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Puis, dans ce dossier :
+Then, in this folder:
 
 ```bash
-uv sync     # cree .venv et installe cryptography — c'est tout
+uv sync     # creates .venv and installs cryptography, that is all
 ```
 
-## Utilisation en 3 commandes
+## Three commands to use it
 
 ```bash
 cd volume_crypto
 
-uv run main.py gen-key      # 1. genere data/keys/master.key  (une seule fois)
+uv run main.py gen-key      # 1. generates data/keys/master.key  (once)
 uv run main.py encrypt      # 2. data/to_encrypt/  ->  data/encrypted/
 uv run main.py decrypt      # 3. data/encrypted/   ->  data/decrypted/
 ```
 
-`uv run` cree et met a jour l'environnement tout seul — `uv sync` n'est meme
-pas obligatoire, la premiere commande s'en charge.
+`uv run` creates and updates the environment on its own, so `uv sync` is not
+even required: the first command takes care of it.
 
-Trois commandes de verification :
+Three commands to check the result:
 
 ```bash
-uv run main.py list         # nom d'origine et taille de chaque .enc
-uv run main.py check        # « mes fichiers sont-ils relisibles ? »  (cle + sha256)
-uv run main.py audit        # « sont-ils vraiment illisibles ? »      (7 controles)
+uv run main.py list         # original name and size of each .enc
+uv run main.py check        # "can I still read my files?"    (key + sha256)
+uv run main.py audit        # "are they really unreadable?"   (7 controls)
 ```
 
-`audit` verifie l'entropie du conteneur, l'absence de signature de format ou du
-nom d'origine en clair, l'aller-retour sha256, et — si l'original est encore la
-— qu'aucun fragment de celui-ci ne se retrouve dans le `.enc`. Voir
-[la section dediee du guide](GUIDE_UTILISATION.md#5-verifier-que-le-chiffrement-est-correct).
+`audit` checks the entropy of the container, the absence of any format
+signature or of the original name in the clear, the sha256 round trip, and, if
+the original is still present, that no fragment of it can be found inside the
+`.enc`. See
+[the dedicated section of the guide](GUIDE_UTILISATION.md#5-verifier-que-le-chiffrement-est-correct).
 
-## Pipeline client / serveur
+## Client and server pipeline
 
-Une demonstration de bout en bout est fournie : le volume est chiffre sur le
-poste, envoye en HTTP, et **la cle n'est remise au serveur qu'apres qu'il a
-prouve quel code il execute**.
+An end-to-end demonstration ships with the project: the volume is encrypted on
+the workstation, sent over HTTP, and **the key is released to the server only
+once it has proved which code it runs**.
 
 ```bash
 uv run server.py                                          # terminal 1
 uv run client.py data/to_encrypt/volume.nii.gz --trust-on-first-use   # terminal 2
 ```
 
-Modifiez une seule ligne de `server.py` et le client refuse de livrer la cle.
-Voir [PIPELINE.md](PIPELINE.md) — protocole, garanties et limites.
+Change a single line of `server.py` and the client refuses to hand over the
+key. See [PIPELINE.md](PIPELINE.md) for the protocol, its guarantees and its
+limits.
 
-## Organisation des dossiers
+## Folder layout
 
 ```
 volume_crypto/
-├── pyproject.toml          # dependances (gerees par uv)
-├── main.py                 # ligne de commande
-├── server.py               # serveur de traitement (pipeline)
-├── client.py               # poste clinique (pipeline)
+├── pyproject.toml          # dependencies (managed by uv)
+├── main.py                 # command line
+├── server.py               # processing server (pipeline)
+├── client.py               # clinical workstation (pipeline)
+├── verify.py               # client-side verification of the announced code
+├── parity_experiment.py    # clear-text against encrypted-chain comparison
+├── evidence_report.py      # collects the measurements into JSON
 ├── voltcrypt/
-│   ├── config.py           # ← chemins, taille de bloc, extensions (a modifier)
-│   ├── keys.py             # generation / stockage des cles
-│   ├── crypto.py           # chiffrement d'UN fichier (le coeur)
-│   ├── batch.py            # chiffrement d'un DOSSIER
-│   ├── audit.py            # controles de verification (commande audit)
-│   ├── timing.py           # chronometrage et formatage des durees
-│   ├── attestation.py      # preuve du code execute (pipeline)
-│   └── keyexchange.py      # remise de cle chiffree (pipeline)
+│   ├── config.py           # <- paths, block size, extensions (edit here)
+│   ├── keys.py             # key generation and storage
+│   ├── crypto.py           # encryption of ONE file (the core)
+│   ├── batch.py            # encryption of a FOLDER
+│   ├── audit.py            # verification controls (audit command)
+│   ├── timing.py           # timing and duration formatting
+│   ├── attestation.py      # proof of the executed code (pipeline)
+│   └── keyexchange.py      # encrypted key release (pipeline)
 ├── tests/
-│   ├── test_keys.py
+│   ├── test_keys.py        # unit tests
 │   ├── test_crypto.py
 │   ├── test_batch.py
 │   ├── test_audit.py
 │   ├── test_timing.py
-│   └── test_pipeline.py
+│   ├── test_pipeline.py
+│   ├── conformance/        # protocol properties and seeded-defect detection
+│   └── integration/        # parity against a real tool
 └── data/
-    ├── to_encrypt/         # ← depose tes volumes ici
-    ├── encrypted/          # → fichiers .enc
-    ├── decrypted/          # → fichiers restitues
-    └── keys/               # ← LES CLES. Ne jamais partager, ne jamais commiter.
+    ├── to_encrypt/         # <- drop your volumes here
+    ├── encrypted/          # -> .enc files
+    ├── decrypted/          # -> restored files
+    └── keys/               # <- THE KEYS. Never share, never commit.
 ```
 
-L'arborescence est preservee :
-`to_encrypt/patient_01/T1/scan.nii` → `encrypted/patient_01/T1/scan.nii.enc`.
+The directory tree is preserved:
+`to_encrypt/patient_01/T1/scan.nii` becomes
+`encrypted/patient_01/T1/scan.nii.enc`.
 
-## Options utiles
+## Useful options
 
 ```bash
-# Autres dossiers que ceux par defaut
-uv run main.py encrypt -i /media/disque/CBCT -o /media/nas/chiffre
+# Folders other than the defaults
+uv run main.py encrypt -i /media/disk/CBCT -o /media/nas/encrypted
 
-# Une cle par etude
-uv run main.py gen-key --key data/keys/etude_ALI.key --label "etude ALI 2026"
-uv run main.py encrypt --key data/keys/etude_ALI.key
+# One key per study
+uv run main.py gen-key --key data/keys/study_ALI.key --label "ALI study 2026"
+uv run main.py encrypt --key data/keys/study_ALI.key
 
-# Ne chiffrer que les extensions volumiques (ignorer README, .csv, ...)
+# Encrypt only volumetric extensions (skip README, .csv, and so on)
 uv run main.py encrypt --only-volumes
 
-# Re-traiter des fichiers deja produits
+# Reprocess files that were already produced
 uv run main.py encrypt --overwrite
 ```
 
-Par defaut, un fichier de sortie deja present est **ignore** — relancer la
-commande ne refait donc que le travail restant, ce qui est pratique sur un gros
-lot interrompu.
+By default an output file that already exists is **skipped**, so running the
+command again only does the remaining work. That helps on a large batch that
+was interrupted.
 
-## Utilisation depuis Python
+## Use from Python
 
 ```python
 from voltcrypt import crypto, keys, batch
 
 key = keys.get_or_create_key("data/keys/master.key")
 
-# Un fichier — le retour porte le chemin ET la duree
-resultat = crypto.encrypt_file("scan.nii.gz", "scan.nii.gz.enc", key)
-print(resultat.seconds)         # 0.4702
-print(resultat)                 # scan.nii.gz.enc : 132.5 Mo en 470.2 ms (282 Mo/s)
+# One file: the return value carries the path AND the duration
+result = crypto.encrypt_file("scan.nii.gz", "scan.nii.gz.enc", key)
+print(result.seconds)           # 0.4702
+print(result)                   # scan.nii.gz.enc : 132.5 Mo en 470.2 ms (282 Mo/s)
 
-crypto.decrypt_file("scan.nii.gz.enc", "scan_restaure.nii.gz", key)
+crypto.decrypt_file("scan.nii.gz.enc", "scan_restored.nii.gz", key)
 
-# Un dossier
-lot = batch.encrypt_directory("mes_volumes/", "chiffres/", key)
-print(lot.wall_seconds, lot.timing_summary())
+# One folder
+batch_result = batch.encrypt_directory("my_volumes/", "encrypted/", key)
+print(batch_result.wall_seconds, batch_result.timing_summary())
 
-# Avec barre de progression
+# With a progress bar
 crypto.encrypt_file(src, dst, key,
-                    progress=lambda fait, total: print(f"\r{100*fait//total} %", end=""))
+                    progress=lambda done, total: print(f"\r{100*done//total} %", end=""))
 ```
 
 ## Tests
 
 ```bash
 cd volume_crypto
-uv run python -m unittest discover -s tests -t . -v     # 108 tests
-# ou
-uv run pytest tests -v                                 # pytest vient du groupe dev
+uv run python -m unittest discover -s tests -t . -v     # 158 tests, 3 skipped
+# or
+uv run pytest tests -v                                  # pytest comes from the dev group
 ```
 
-Les tests couvrent l'aller-retour bit a bit (VTK ASCII, binaire, fichier vide,
-fichier plus gros que la taille de bloc), le refus d'une mauvaise cle, la
-detection d'un bit modifie ou d'une troncature, et le comportement du lot quand
-un fichier est corrompu.
+The unit tests cover the bit-for-bit round trip (VTK ASCII, binary, empty file,
+file larger than the block size), refusal of a wrong key, detection of a flipped
+bit or of a truncation, and the behaviour of a batch when one file is corrupt.
+The `conformance/` tests check protocol properties and that the verifier catches
+deliberately seeded defects; `integration/` compares a real tool run against its
+clear-text control. The three skipped tests need a GPU and a served tool.
 
 ---
 
-## Ce que fait le format `.enc`
+## What the `.enc` format does
 
 ```
-HEADER (21 octets, en clair)
-    magic "VOLCRYPT" | version | taille de bloc | nonce_base (8 octets aleatoires)
+HEADER (21 bytes, in the clear)
+    magic "VOLCRYPT" | version | block size | nonce_base (8 random bytes)
 
-puis une suite de BLOCS :  [longueur 4 octets][ciphertext || tag GCM 16 octets]
+then a sequence of BLOCKS:  [length 4 bytes][ciphertext || GCM tag 16 bytes]
 
-    bloc 0        metadonnees chiffrees : nom d'origine, taille
-    bloc 1..n     donnees du fichier
-    bloc final    sha256 du contenu en clair
+    block 0        encrypted metadata: original name, size
+    block 1..n     file data
+    final block    sha256 of the plaintext content
 ```
 
-- **Nonce** = `nonce_base || index du bloc`. Le `nonce_base` etant tire au hasard
-  pour chaque fichier, aucun nonce n'est jamais reutilise avec la meme cle —
-  c'est le point critique de GCM.
-- **AAD** de chaque bloc = header + index + drapeau « dernier bloc ». Un bloc ne
-  peut donc pas etre reordonne, supprime, duplique, ni recopie depuis un autre
-  fichier, et une troncature du fichier est detectee.
-- **Le nom d'origine est chiffre** : `DUPONT_Jean_CBCT.vtk` n'apparait nulle part
-  en clair dans le conteneur. Tu peux renommer librement les `.enc` (par exemple
-  en pseudonymes) — `decrypt` retrouve le nom d'origine dans les metadonnees.
-- **Ecriture atomique** : chaque sortie est ecrite en `.part` puis renommee. Une
-  interruption ne laisse jamais un fichier a moitie ecrit qu'on croirait valide.
+- **Nonce** = `nonce_base || block index`. Since `nonce_base` is drawn at random
+  for every file, no nonce is ever reused with the same key, which is the
+  critical point of GCM.
+- **AAD** of each block = header + index + "last block" flag. A block therefore
+  cannot be reordered, removed, duplicated, or copied over from another file,
+  and truncation of the file is detected.
+- **The original name is encrypted**: `DUPONT_Jean_CBCT.vtk` appears nowhere in
+  the clear inside the container. You can rename the `.enc` files freely, to
+  pseudonyms for instance, and `decrypt` recovers the original name from the
+  metadata.
+- **Atomic writes**: every output is written as `.part` then renamed. An
+  interruption never leaves a half-written file that would look valid.
 
-## Ce que ce script ne fait pas
+## What this project does not do
 
-- **Il ne protege pas la cle.** `data/keys/master.key` est en clair sur le
-  disque, en 0600. Qui lit ce fichier lit tes volumes. Pour de la donnee
-  patient reelle : sauvegarde la cle hors ligne, et regarde un KMS / HSM, ou
-  la remise de cle conditionnee a une attestation (cf. `../conf_computing.md`).
-- **Il ne protege que le repos.** Pendant le calcul, la donnee est en clair en
-  memoire.
-- **Il n'anonymise pas.** Chiffrer est reversible par conception : une donnee
-  chiffree dont tu detiens la cle reste une donnee a caractere personnel au sens
-  du RGPD. Retire les metadonnees DICOM identifiantes *avant* de chiffrer — tout
-  ce que tu chiffres reviendra tel quel au dechiffrement. Detail en
-  [section 6 du guide](GUIDE_UTILISATION.md#6-chiffrement-pseudonymisation-anonymisation).
-- **Perdre la cle = perdre les donnees.** Il n'y a pas de recuperation. C'est
-  le comportement voulu, mais fais des sauvegardes de `data/keys/`.
-- **Pas de compression.** Un `.nii` non compresse chiffre reste aussi gros.
-  Compresse avant (`.nii.gz`) si besoin — apres chiffrement, plus rien ne
-  compresse.
+- **It does not protect the key.** `data/keys/master.key` sits in the clear on
+  disk, mode 0600. Whoever reads that file reads your volumes. For real patient
+  data: back the key up offline, and look at a KMS or an HSM, or at key release
+  conditioned on an attestation (see `../conf_computing.md`).
+- **It only protects data at rest.** During computation the data is in the clear
+  in memory.
+- **It does not anonymise.** Encryption is reversible by design: encrypted data
+  whose key you hold remains personal data under the GDPR. Strip identifying
+  DICOM metadata *before* encrypting, because everything you encrypt comes back
+  unchanged on decryption. Details in
+  [section 6 of the guide](GUIDE_UTILISATION.md#6-chiffrement-pseudonymisation-anonymisation).
+- **Losing the key means losing the data.** There is no recovery. That is the
+  intended behaviour, but do back up `data/keys/`.
+- **No compression.** An uncompressed `.nii` stays just as large once
+  encrypted. Compress first (`.nii.gz`) if you need to, because after encryption
+  nothing compresses any more.
 
-## Pour adapter
+## Adapting it
 
-Presque tout se regle dans [`voltcrypt/config.py`](voltcrypt/config.py) :
-chemins des dossiers, `CHUNK_SIZE`, extensions reconnues. Le reste du code n'y
-touche que par ces constantes.
+Almost everything is set in [`voltcrypt/config.py`](voltcrypt/config.py):
+folder paths, `CHUNK_SIZE`, recognised extensions. The rest of the code only
+reaches them through those constants.

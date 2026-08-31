@@ -41,7 +41,10 @@ import tempfile
 import time
 from pathlib import Path
 
-UNC = Path.home() / "Projects" / "UNC"
+#: Racine des depots. Codee en dur, elle supposait l'arborescence du poste
+#: d'origine et faisait echouer toute execution ailleurs des la premiere ligne.
+#: Surchargeable par SADT_ROOT, avec la valeur historique par defaut.
+UNC = Path(os.environ.get("SADT_ROOT", Path.home() / "Projects" / "UNC"))
 RUNNER = UNC / "slicer-remote-tool-server" / "server" / "execution" / "runner.py"
 
 #: Quatre volumes distincts, 94 a 176 Mo. La rotation les repete jusqu'a n.

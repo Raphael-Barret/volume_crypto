@@ -24,7 +24,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from voltcrypt import crypto, keys
 
-SCAN = Path.home() / "Downloads" / "MG_test_scan.nii.gz"
+#: Volume de test, publiquement telechargeable depuis la release v1.0.1 de
+#: Maxlo24/AMASSS_CBCT. Surchargeable par SADT_SCAN.
+SCAN = Path(os.environ.get("SADT_SCAN",
+                           Path.home() / "Downloads" / "MG_test_scan.nii.gz"))
 PASSES = 3
 
 
