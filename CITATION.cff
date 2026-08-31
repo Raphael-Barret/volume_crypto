@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it using these metadata.
+title: 'voltcrypt: encrypted volumetric imaging with attestation-gated key release'
+abstract: Streaming AES-256-GCM encryption of imaging volumes, with a client that
+  releases the decryption key only after the server proves, by signed measurement
+  over its own code, which program will read the study.
+type: software
+authors:
+- given-names: Raphaël
+  family-names: Barret
+  affiliation: CPE Lyon, Lyon, France; Department of Orthodontics, Adams School of
+    Dentistry, University of North Carolina at Chapel Hill, NC, USA
+repository-code: https://github.com/Raphael-Barret/volume_crypto
+keywords:
+- reproducible research
+- research software
+- medical imaging
+- confidential computing
+- remote attestation
+license: MIT
